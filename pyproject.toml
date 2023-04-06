@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "nko"
+version = "0.1.0"
+description = ""
+authors = ["zifrit <zifrit@list.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+djangorestframework = "^3.14.0"
+django = "3.2.5"
+4 = "^8.8.8.8"
+django-debug-toolbar = "^4.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
