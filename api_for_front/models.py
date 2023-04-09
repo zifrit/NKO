@@ -6,7 +6,7 @@ class MainTableKO(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название проекта')
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name='Кто создал')
     stages_mass = models.CharField(max_length=255, verbose_name='Массив из id этапов')
-
+    stages = models.ManyToManyField(to='KoStage', verbose_name='Список Этапов', related_name='base')
 
     pass
 
@@ -24,8 +24,8 @@ class KoImages(models.Model):
 
 
 class KoStage(models.Model):
-    text = models.ManyToManyField(to='FieldText', verbose_name='Текст')
-    textarea = models.ManyToManyField(to='FieldTextarea', verbose_name='Большой текст')
+    text = models.ManyToManyField(to='FieldText', verbose_name='Текст', blank=True)
+    textarea = models.ManyToManyField(to='FieldTextarea', verbose_name='Большой текст', blank=True)
     date_create = models.DateTimeField(verbose_name='Дата создание')
     date_start = models.DateTimeField(verbose_name='Дата начала работы')
     date_end = models.DateTimeField(verbose_name='Дата конца работы')
