@@ -14,3 +14,5 @@ class MainKO(admin.ModelAdmin):
 admin.site.register(models.FieldText)
 admin.site.register(models.KoStage)
 admin.site.register(models.FieldTextarea)
+admin.site.register(models.FieldDate)
+admin.site.register(models.FieldStartFinishTime)

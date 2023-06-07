@@ -38,15 +38,23 @@ class ViewListStage(generics.ListAPIView):
 
 class ViewMainTableKo(generics.RetrieveAPIView):
     serializer_class = serializers.MainKoSerializer
-    queryset = models.MainTableKO.objects.all()
+    queryset = models.MainTableKO.objects.prefetch_related('stages',
+                                                           'stages__textarea',
+                                                           'stages__text',
+                                                           'stages__date',
+                                                           'stages__SF_time')
 
 
-class CreateMainTableKo(generics.ListCreateAPIView):
+class ListCreateMainTableKo(generics.ListCreateAPIView):
     serializer_class = serializers.MainKoSerializer
-    queryset = models.MainTableKO.objects.prefetch_related('stages', 'stages__textarea', 'stages__text')
+    queryset = models.MainTableKO.objects.prefetch_related('stages',
+                                                           'stages__textarea',
+                                                           'stages__text',
+                                                           'stages__date',
+                                                           'stages__SF_time')
 
     def create(self, request, *args, **kwargs):
-        super(CreateMainTableKo, self).create(request, *args, **kwargs)
+        super(ListCreateMainTableKo, self).create(request, *args, **kwargs)
         return Response({'status': 'ok'})
 
     def perform_create(self, serializer):
