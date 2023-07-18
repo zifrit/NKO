@@ -4,5 +4,8 @@ from django.contrib.auth.models import User
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        User.objects.create_superuser(username="admin", password="admin")
-        self.stdout.write(self.style.SUCCESS('Success create superuser'))
+        if User.objects.filter(username='admin', is_superuser=True).exists():
+            self.stdout.write(self.style.SUCCESS('Success create superuser'))
+        else:
+            User.objects.create_superuser(username="admin123", password="admin")
+            self.stdout.write(self.style.SUCCESS('Success create superuser'))
