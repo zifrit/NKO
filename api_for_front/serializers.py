@@ -4,7 +4,7 @@ from . import models
 
 class CreateStageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.KoStage
+        model = models.Step
         fields = '__all__'
 
 
@@ -32,7 +32,7 @@ class ViewStageSerializer(serializers.ModelSerializer):
         return rep
 
     class Meta:
-        model = models.KoStage
+        model = models.Step
         fields = ['text', 'textarea']
 
 
@@ -44,5 +44,5 @@ class MainKoSerializer(serializers.ModelSerializer):
         return rep
 
     class Meta:
-        model = models.MainTableKO
+        model = models.MainProject
         exclude = ['user']
