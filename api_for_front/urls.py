@@ -13,7 +13,7 @@ urlpatterns = [
     path('liststage/', views.ViewListStage.as_view()),
     # path('maintableko/<int:pk>/', views.ViewMainTableKo.as_view()),
     path('list_create_main_table/', views.ListCreateMainTableKo.as_view()),
-    path('create_stage/', views.CreateStage.as_view()),
+    path('create_step/', views.CreateStep.as_view()),
     path('update_stage_info/<int:pk>/', views.AddIngoInStage.as_view()),
     path('', include(router.urls)),
 ]
