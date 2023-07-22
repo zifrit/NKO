@@ -11,8 +11,14 @@ class MainKO(admin.ModelAdmin):
     list_display_links = ['id', 'name']
 
 
+@admin.register(models.Step)
+class MainKO(admin.ModelAdmin):
+    list_display = ['id', 'name']
+    list_display_links = ['id', 'name']
+
+
 admin.site.register(models.FieldText)
-admin.site.register(models.Step)
+admin.site.register(models.LinksStep)
 admin.site.register(models.FieldTextarea)
 admin.site.register(models.FieldDate)
 admin.site.register(models.FieldStartFinishTime)

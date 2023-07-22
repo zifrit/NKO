@@ -7,7 +7,6 @@ router = routers.SimpleRouter()
 router.register(r'project', views.ProjectKOViewSet)
 
 urlpatterns = [
-    path('stage/', views.CreateApiViewME.as_view()),
     path('textfield/', views.CreateTextFieldAPI.as_view()),
     path('textareafiled/', views.CreateTextareaFieldAPI.as_view()),
     path('liststage/', views.ViewListStage.as_view()),

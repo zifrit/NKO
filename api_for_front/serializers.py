@@ -2,10 +2,11 @@ from rest_framework import serializers
 from . import models
 
 
-class CreateStageSerializer(serializers.ModelSerializer):
+class CreateStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ['pk', 'name', 'structure_step']
 
 
 class CreateTextFieldSerializer(serializers.ModelSerializer):

@@ -1,10 +1,11 @@
 from datetime import datetime
 
+from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.shortcuts import render
 
 # Create your views here.
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -16,11 +17,6 @@ from django.db import transaction
 class test(APIView):
     def get(self, request):
         return Response({'ds': 'as'})
-
-
-class CreateApiViewME(generics.CreateAPIView):
-    serializer_class = serializers.CreateStageSerializer
-    queryset = models.Step
 
 
 class CreateTextFieldAPI(generics.CreateAPIView):
@@ -65,20 +61,17 @@ class ListCreateMainTableKo(generics.ListCreateAPIView):
 
 class CreateStep(generics.CreateAPIView):
     queryset = models.Step.objects.prefetch_related('text', 'textarea')
-    serializer_class = serializers.CreateStageSerializer
+    serializer_class = serializers.CreateStepSerializer
+
+    def perform_create(self, serializer, **kwargs):
+        return serializer.save(user=User.objects.get(pk=1), date_create=datetime.today(), **kwargs)
 
     def create(self, request, *args, **kwargs):
-        data = self.request.data
         with transaction.atomic():
-            step = models.Step.objects.create(
-                date_create=datetime.today(),
-                date_end=datetime.today(),
-                date_start=datetime.today(),
-                # user=self.request.user,
-                user_id=1,
-                name=data.get('name', 'Example'),
-                structure_step=data.get('structure', {})
-            )
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            step = self.perform_create(serializer)
+            data = request.data
             if data.get('f_text', False):
                 for _ in range(data['f_text']):
                     mass_id = []
@@ -104,8 +97,8 @@ class CreateStep(generics.CreateAPIView):
                     mass_id.append(ftt.id)
                     step.SF_time.add(*mass_id)
             step.save()
-            # step.objects.filter(base__name=)
-        return Response({'step_id': step.id})
+            headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class AddIngoInStage(generics.RetrieveUpdateAPIView):
