@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.contrib.auth.models import User
+from django.db.models import Prefetch, F
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -8,7 +9,7 @@ from django.shortcuts import render
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from . import models, serializers
 from django.db import transaction
@@ -19,19 +20,22 @@ class test(APIView):
         return Response({'ds': 'as'})
 
 
-class CreateTextFieldAPI(generics.CreateAPIView):
-    serializer_class = serializers.CreateTextFieldSerializer
-    queryset = models.FieldText
-
-
 class CreateTextareaFieldAPI(generics.CreateAPIView):
     serializer_class = serializers.CreateTextareaFieldSerializer
     queryset = models.FieldTextarea
 
 
-class ViewListStage(generics.ListAPIView):
+class ListRetrieveStep(ReadOnlyModelViewSet):
     serializer_class = serializers.ViewStageSerializer
-    queryset = models.Step.objects.prefetch_related('text', 'textarea')
+    queryset = models.Step.objects. \
+        select_related('what_project'). \
+        prefetch_related(Prefetch('text', queryset=models.FieldText.objects.all().only('text', 'identify')),
+                         Prefetch('date', queryset=models.FieldDate.objects.all().only('time', 'identify')),
+                         Prefetch('SF_time', queryset=models.FieldStartFinishTime.objects.all().only('start', 'finish',
+                                                                                                     'identify')),
+                         Prefetch('textarea', queryset=models.FieldTextarea.objects.all().only('textarea', 'identify')),
+                         ). \
+        only('what_project__name')
 
 
 class ProjectKOViewSet(ModelViewSet):
@@ -59,12 +63,20 @@ class ListCreateMainTableKo(generics.ListCreateAPIView):
         return serializer.save(user_id=1)
 
 
+class CreateTemplatesStep(generics.CreateAPIView):
+    queryset = models.StepTemplates.objects.select_related('user')
+    serializer_class = serializers.CreateTemplatesStepSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=User.objects.get(pk=1))
+
+
 class CreateStep(generics.CreateAPIView):
     queryset = models.Step.objects.prefetch_related('text', 'textarea')
     serializer_class = serializers.CreateStepSerializer
 
-    def perform_create(self, serializer, **kwargs):
-        return serializer.save(user=User.objects.get(pk=1), date_create=datetime.today(), **kwargs)
+    def perform_create(self, serializer):
+        return serializer.save()
 
     def create(self, request, *args, **kwargs):
         with transaction.atomic():

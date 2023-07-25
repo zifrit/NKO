@@ -9,8 +9,8 @@ class MainProject(models.Model):
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)
     last_change = models.DateTimeField(auto_now=True, verbose_name='последние изменения', blank=True, null=True)
-    structure_project = models.JSONField(verbose_name='структура проекта')
-    id_steps = models.ManyToManyField(to='Step', verbose_name='Список Этапов', related_name='base')
+    structure_project = models.JSONField(verbose_name='структура проекта', default=dict)
+    id_steps = models.ManyToManyField(to='Step', verbose_name='Список Этапов', related_name='base', blank=True)
 
     def __str__(self):
         return f'{self.user.username} {self.name}'
@@ -41,20 +41,23 @@ class ProjectImages(models.Model):
 class StepTemplates(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True, unique=True)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name='Кто создал')
-    structure_step = models.JSONField(verbose_name='структура этапа', default=dict)
+    structure = models.JSONField(verbose_name='структура этапа', default=dict)
+    structure_for_create = models.JSONField(verbose_name='структура для создания этапа', default=dict)
 
 
 class Step(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
     what_project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
-                                     related_name='steps', blank=True)
+                                     related_name='steps')
     date = models.ManyToManyField(to='FieldDate', verbose_name='Дата', blank=True)
     SF_time = models.ManyToManyField(to='FieldStartFinishTime', verbose_name='Срок', blank=True)
     text = models.ManyToManyField(to='FieldText', verbose_name='Текст', blank=True)
     textarea = models.ManyToManyField(to='FieldTextarea', verbose_name='Большой текст', blank=True)
-    date_create = models.DateTimeField(verbose_name='Дата создание', )
+    date_create = models.DateTimeField(verbose_name='Дата создание', auto_now_add=True)
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)
+
+
 
     def __str__(self):
         return self.name

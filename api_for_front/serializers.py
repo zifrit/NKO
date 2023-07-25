@@ -5,14 +5,13 @@ from . import models
 class CreateStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
-        # fields = '__all__'
-        fields = ['pk', 'name', 'structure_step']
+        fields = ['name', 'what_project']
 
 
-class CreateTextFieldSerializer(serializers.ModelSerializer):
+class CreateTemplatesStepSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.FieldText
-        fields = '__all__'
+        model = models.StepTemplates
+        fields = ['name', 'structure', 'structure_for_create']
 
 
 class CreateTextareaFieldSerializer(serializers.ModelSerializer):
@@ -22,10 +21,10 @@ class CreateTextareaFieldSerializer(serializers.ModelSerializer):
 
 
 class ViewStageSerializer(serializers.ModelSerializer):
+    what_project = serializers.CharField(source='what_project.name')
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep['id_stage'] = instance.id
         rep['text'] = {b.identify: b.text for b in instance.text.all()}
         rep['date'] = {b.identify: b.time for b in instance.date.all()}
         rep['SF_time'] = {b.identify: f'{b.start} : {b.finish}' for b in instance.SF_time.all()}
@@ -34,7 +33,7 @@ class ViewStageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Step
-        fields = ['text', 'textarea']
+        fields = ['id', 'what_project',]
 
 
 class MainKoSerializer(serializers.ModelSerializer):

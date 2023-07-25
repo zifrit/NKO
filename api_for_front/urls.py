@@ -5,11 +5,10 @@ from . import views
 
 router = routers.SimpleRouter()
 router.register(r'project', views.ProjectKOViewSet)
+router.register(r'steps', views.ListRetrieveStep)
 
 urlpatterns = [
-    path('textfield/', views.CreateTextFieldAPI.as_view()),
-    path('textareafiled/', views.CreateTextareaFieldAPI.as_view()),
-    path('liststage/', views.ViewListStage.as_view()),
+    # path('liststage/', views.ViewListStage.as_view()),
     # path('maintableko/<int:pk>/', views.ViewMainTableKo.as_view()),
     path('list_create_main_table/', views.ListCreateMainTableKo.as_view()),
     path('create_step/', views.CreateStep.as_view()),
