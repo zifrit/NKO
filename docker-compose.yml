@@ -13,8 +13,7 @@ services:
       gunicorn NKO.wsgi:application --bind 0.0.0.0:8000
       "
     volumes:
-      - static:/am/static
-      - media:/am/media
+      - .:/am
     ports:
       - "8000:8000"
     env_file:
@@ -46,6 +45,24 @@ services:
     volumes:
       - static:/am/static
       - media:/am/media
+
+  redis:
+    image: redis:alpine
+    hostname: redis
+
+  celery_worker:
+    build:
+      dockerfile: ./dockerfile
+    container_name: nko-celery_worker_1
+    hostname: worker_1
+    volumes:
+      - .:/am
+    command: celery -A NKO worker -l info
+    links:
+      - redis
+    depends_on:
+      - redis
+
 
 
 volumes:
