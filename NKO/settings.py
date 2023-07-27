@@ -174,7 +174,26 @@ REST_FRAMEWORK = {
     'DATETIME_FORMAT': '%Y-%m-%d',  # изменение формы отображение даты ListCommentsSerializer
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     # 'PAGE_SIZE': 2,
-    # 'DEFAULT_FILTER_BACKENDS': [
-    #     'django_filters.rest_framework.DjangoFilterBackend'
-    # ]
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
+    ]
 }
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'sql_queries.log',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'level': 'DEBUG',
+            'handlers': ['file'],
+        },
+    },
+}
+
+

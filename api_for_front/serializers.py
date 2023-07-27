@@ -33,7 +33,7 @@ class ViewStageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Step
-        fields = ['id', 'what_project',]
+        fields = ['id', 'what_project']
 
 
 class MainKoSerializer(serializers.ModelSerializer):

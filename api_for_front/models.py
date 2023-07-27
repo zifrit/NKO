@@ -57,8 +57,6 @@ class Step(models.Model):
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)
 
-
-
     def __str__(self):
         return self.name
 
