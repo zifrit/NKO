@@ -25,7 +25,7 @@ class LinksStep(models.Model):
 
 class ProjectFiles(models.Model):
     file_name = models.CharField(verbose_name='Название файла', max_length=255)
-    path_file = models.FileField(upload_to=f'file/%Y/%m.%d/', verbose_name='Файл')
+    path_file = models.FileField(upload_to='file/%Y/%m.%d/', verbose_name='Файл')
     link_main_project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='связь с проектом',
                                           related_name='project_files')
     link_step = models.ForeignKey(to='Step', on_delete=models.CASCADE, verbose_name='связь с этапом',
@@ -34,7 +34,7 @@ class ProjectFiles(models.Model):
 
 class ProjectImages(models.Model):
     file_name = models.CharField(verbose_name='Название файла', max_length=255)
-    path_file = models.FileField(upload_to=f'images/%Y/%m.%d/', verbose_name='Файл')
+    path_file = models.FileField(upload_to='images/%Y/%m.%d/', verbose_name='Файл')
     link_main_project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='Объект привязки')
 
 

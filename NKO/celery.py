@@ -14,5 +14,4 @@ app.autodiscover_tasks()
 @app.task(bind=True, ignore_result=True)
 def debug_task(self):
     time.sleep(20)
-    print(f'Request: {self.request!r}')
     print('Hello form debug_task')

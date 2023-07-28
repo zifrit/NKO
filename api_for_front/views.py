@@ -1,9 +1,6 @@
-from datetime import datetime
 
 from django.contrib.auth.models import User
-from django.db.models import Prefetch, F
-from django.http import HttpResponse
-from django.shortcuts import render
+from django.db.models import Prefetch
 
 # Create your views here.
 from rest_framework import generics, status
