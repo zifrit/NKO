@@ -59,6 +59,7 @@ LIBRARY_APP = [
     'rest_framework',
     'debug_toolbar',
     'django_filters',
+    'drf_spectacular',
 ]
 
 INSTALLED_APPS = BASE_APPS + PROJECT + LIBRARY_APP
@@ -175,7 +176,15 @@ REST_FRAMEWORK = {
     # 'PAGE_SIZE': 2,
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'
-    ]
+    ],
+    'DEFAULT_SCHEMA_CLASS':  'drf_spectacular.openapi.AutoSchema'
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'test spectacular',
+    'DESCRIPTION': 'test',
+    'VERSION': '1.1.1',
+    'SERVE_INCLUDE_SCHEMA': False
 }
 
 LOGGING = {
