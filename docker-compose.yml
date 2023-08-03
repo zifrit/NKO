@@ -25,13 +25,13 @@ services:
     container_name: nko_postgres
     restart: unless-stopped
     volumes:
-        - postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data/
     environment:
-        POSTGRES_DB: postgres
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     expose:
-        - 5432
+      - 5432
     env_file:
       - .env
 
@@ -55,6 +55,12 @@ services:
       dockerfile: ./dockerfile
     container_name: nko-celery_worker_1
     hostname: worker_1
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    env_file:
+      - .env
     volumes:
       - .:/am
     command: celery -A NKO worker -l info
@@ -62,10 +68,26 @@ services:
       - redis
     depends_on:
       - redis
+      - db
+
+  flower:
+    build:
+      dockerfile: ./dockerfile
+    hostname: nko-flower
+    command: celery -A NKO flower
+    volumes:
+      - .:/am
+    links:
+      - redis
+    depends_on:
+      - redis
+    ports:
+      - "5555:5555"
+
 
 
 
 volumes:
-    postgres_data:
-    static:
-    media:
+  postgres_data:
+  static:
+  media:

@@ -19,7 +19,7 @@ RUN mkdir /am/static && mkdir /am/media && chown -R am:am /am && chmod 755 /am
 RUN pip install "poetry==1.4.2"
 RUN poetry config virtualenvs.create false --local
 
-COPY --chown=yt:yt . .
+COPY --chown=am:am . .
 
 RUN poetry install
 
