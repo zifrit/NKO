@@ -35,22 +35,22 @@ class ListRetrieveStep(ReadOnlyModelViewSet):
         only('what_project__name')
 
 
-class ProjectKOViewSet(ModelViewSet):
+class CRUDProjectViewSet(ModelViewSet):
     serializer_class = serializers.MainKoSerializer
-    queryset = models.MainProject.objects.prefetch_related('stages',
-                                                           'stages__textarea',
-                                                           'stages__text',
-                                                           'stages__date',
-                                                           'stages__SF_time')
+    queryset = models.MainProject.objects.prefetch_related('steps',
+                                                           'steps__textarea',
+                                                           'steps__text',
+                                                           'steps__date',
+                                                           'steps__SF_time')
 
 
 class ListCreateMainTableKo(generics.ListCreateAPIView):
     serializer_class = serializers.MainKoSerializer
-    queryset = models.MainProject.objects.prefetch_related('stages',
-                                                           'stages__textarea',
-                                                           'stages__text',
-                                                           'stages__date',
-                                                           'stages__SF_time')
+    queryset = models.MainProject.objects.prefetch_related('steps',
+                                                           'steps__textarea',
+                                                           'steps__text',
+                                                           'steps__date',
+                                                           'steps__SF_time')
 
     def create(self, request, *args, **kwargs):
         super(ListCreateMainTableKo, self).create(request, *args, **kwargs)
@@ -110,7 +110,7 @@ class CreateStep(generics.CreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
-class AddIngoInStage(generics.RetrieveUpdateAPIView):
+class AddInfoInStage(generics.RetrieveUpdateAPIView):
     queryset = models.Step.objects.prefetch_related('text', 'textarea')
     serializer_class = serializers.ViewStageSerializer
 

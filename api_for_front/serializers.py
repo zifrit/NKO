@@ -39,8 +39,8 @@ class ViewStageSerializer(serializers.ModelSerializer):
 class MainKoSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        stages = instance.stages.all()
-        rep['stages'] = ViewStageSerializer(instance=stages, many=True).data
+        steps = instance.steps.all()
+        rep['steps'] = ViewStageSerializer(instance=steps, many=True).data
         return rep
 
     class Meta:

@@ -5,12 +5,11 @@ from django.contrib.auth.models import User
 class MainProject(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название проекта', db_index=True)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name='Кто создал')
-    date_create = models.DateTimeField(verbose_name='Дата создание', blank=True, null=True)
+    date_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создание')
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)
-    last_change = models.DateTimeField(auto_now=True, verbose_name='последние изменения', blank=True, null=True)
+    last_change = models.DateTimeField(auto_now=True, verbose_name='последние изменения')
     structure_project = models.JSONField(verbose_name='структура проекта', default=dict)
-    id_steps = models.ManyToManyField(to='Step', verbose_name='Список Этапов', related_name='base', blank=True)
 
     def __str__(self):
         return f'{self.user.username} {self.name}'
