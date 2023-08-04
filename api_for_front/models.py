@@ -38,16 +38,18 @@ class ProjectImages(models.Model):
 
 
 class StepTemplates(models.Model):
-    name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True, unique=True)
-    user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name='Кто создал')
-    structure = models.JSONField(verbose_name='структура этапа', default=dict)
-    structure_for_create = models.JSONField(verbose_name='структура для создания этапа', default=dict)
+    name = models.CharField(max_length=255, verbose_name='Название схемы', db_index=True, unique=True)
+    user = models.ForeignKey(to=User, on_delete=models.SET_NULL, verbose_name='Кто создал', null=True)
+    schema = models.JSONField(verbose_name='схема этапа', default=dict)
+    schema_for_create = models.JSONField(verbose_name='схема для создания этапа', default=dict)
 
 
 class Step(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
     what_project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
                                      related_name='steps')
+    templates_schema = models.ForeignKey(to='StepTemplates', on_delete=models.PROTECT,
+                                         verbose_name='Схема для создания', related_name='copy_steps')
     date = models.ManyToManyField(to='FieldDate', verbose_name='Дата', blank=True)
     SF_time = models.ManyToManyField(to='FieldStartFinishTime', verbose_name='Срок', blank=True)
     text = models.ManyToManyField(to='FieldText', verbose_name='Текст', blank=True)

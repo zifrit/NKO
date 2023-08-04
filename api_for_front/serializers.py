@@ -11,7 +11,7 @@ class CreateStepSerializer(serializers.ModelSerializer):
 class CreateTemplatesStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.StepTemplates
-        fields = ['name', 'structure', 'structure_for_create']
+        fields = ['name', 'schema', 'schema_for_create']
 
 
 class CreateTextareaFieldSerializer(serializers.ModelSerializer):

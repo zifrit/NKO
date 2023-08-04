@@ -1,4 +1,3 @@
-
 from django.contrib.auth.models import User
 from django.db.models import Prefetch
 
@@ -66,6 +65,10 @@ class CreateTemplatesStep(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=User.objects.get(pk=1))
+
+    def create(self, request, *args, **kwargs):
+        super().create(request, *args, **kwargs)
+        return Response({'status': 'ok'})
 
 
 class CreateStep(generics.CreateAPIView):
