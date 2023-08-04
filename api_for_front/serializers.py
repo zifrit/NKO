@@ -5,7 +5,7 @@ from . import models
 class CreateStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
-        fields = ['name', 'what_project']
+        fields = ['name', 'what_project', 'templates_schema']
 
 
 class CreateTemplatesStepSerializer(serializers.ModelSerializer):

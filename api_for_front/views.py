@@ -72,45 +72,38 @@ class CreateTemplatesStep(generics.CreateAPIView):
 
 
 class CreateStep(generics.CreateAPIView):
-    queryset = models.Step.objects.prefetch_related('text', 'textarea')
+    queryset = models.Step.objects.select_related('templates_schema').prefetch_related('text', 'textarea')
     serializer_class = serializers.CreateStepSerializer
 
     def perform_create(self, serializer):
-        return serializer.save()
+        with transaction.atomic():
+            step = serializer.save()
+            schema = step.templates_schema.schema_for_create
+            if schema.get('f_text', False):
+                item_objects = [models.FieldText(link_step=step)] * schema['f_text']
+                models.FieldText.objects.bulk_create(item_objects)
+                field_id = models.FieldText.objects.filter(link_step=step).only('id')
+                step.text.add(*field_id)
+            if schema.get('f_textarea', False):
+                item_objects = [models.FieldTextarea(link_step=step)] * schema['f_textarea']
+                models.FieldTextarea.objects.bulk_create(item_objects)
+                field_id = models.FieldTextarea.objects.filter(link_step=step).only('id')
+                step.textarea.add(*field_id)
+            if schema.get('f_date', False):
+                item_objects = [models.FieldDate(link_step=step)] * schema['f_date']
+                models.FieldDate.objects.bulk_create(item_objects)
+                field_id = models.FieldDate.objects.filter(link_step=step).only('id')
+                step.date.add(*field_id)
+            if schema.get('f_s_f_time', False):
+                item_objects = [models.FieldStartFinishTime(link_step=step)] * schema['f_s_f_time']
+                models.FieldStartFinishTime.objects.bulk_create(item_objects)
+                field_id = models.FieldStartFinishTime.objects.filter(link_step=step).only('id')
+                step.date.add(*field_id)
+            step.save()
 
     def create(self, request, *args, **kwargs):
-        with transaction.atomic():
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            step = self.perform_create(serializer)
-            data = request.data
-            if data.get('f_text', False):
-                for _ in range(data['f_text']):
-                    mass_id = []
-                    ftt = models.FieldText.objects.create(link_step=step)
-                    mass_id.append(ftt.id)
-                    step.text.add(*mass_id)
-            if data.get('f_textarea', False):
-                for _ in range(data['field_textarea']):
-                    mass_id = []
-                    ftt = models.FieldTextarea.objects.create(link_step=step)
-                    mass_id.append(ftt.id)
-                    step.textarea.add(*mass_id)
-            if data.get('f_date', False):
-                for _ in range(data['field_date']):
-                    mass_id = []
-                    ftt = models.FieldDate.objects.create(link_step=step)
-                    mass_id.append(ftt.id)
-                    step.date.add(*mass_id)
-            if data.get('f_s_f_time', False):
-                for _ in range(data['f_s_f_time']):
-                    mass_id = []
-                    ftt = models.FieldStartFinishTime.objects.create(link_step=step)
-                    mass_id.append(ftt.id)
-                    step.SF_time.add(*mass_id)
-            step.save()
-            headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        super().create(request, *args, **kwargs)
+        return Response({'status': 'ok'})
 
 
 class AddInfoInStage(generics.RetrieveUpdateAPIView):
