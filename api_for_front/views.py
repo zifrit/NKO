@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from . import models, serializers
+from .tasks import create_fields_fro_step
 from django.db import transaction
 
 
@@ -78,28 +79,7 @@ class CreateStep(generics.CreateAPIView):
     def perform_create(self, serializer):
         with transaction.atomic():
             step = serializer.save()
-            schema = step.templates_schema.schema_for_create
-            if schema.get('f_text', False):
-                item_objects = [models.FieldText(link_step=step)] * schema['f_text']
-                models.FieldText.objects.bulk_create(item_objects)
-                field_id = models.FieldText.objects.filter(link_step=step).only('id')
-                step.text.add(*field_id)
-            if schema.get('f_textarea', False):
-                item_objects = [models.FieldTextarea(link_step=step)] * schema['f_textarea']
-                models.FieldTextarea.objects.bulk_create(item_objects)
-                field_id = models.FieldTextarea.objects.filter(link_step=step).only('id')
-                step.textarea.add(*field_id)
-            if schema.get('f_date', False):
-                item_objects = [models.FieldDate(link_step=step)] * schema['f_date']
-                models.FieldDate.objects.bulk_create(item_objects)
-                field_id = models.FieldDate.objects.filter(link_step=step).only('id')
-                step.date.add(*field_id)
-            if schema.get('f_s_f_time', False):
-                item_objects = [models.FieldStartFinishTime(link_step=step)] * schema['f_s_f_time']
-                models.FieldStartFinishTime.objects.bulk_create(item_objects)
-                field_id = models.FieldStartFinishTime.objects.filter(link_step=step).only('id')
-                step.date.add(*field_id)
-            step.save()
+            create_fields_fro_step.delay(step.pk)
 
     def create(self, request, *args, **kwargs):
         super().create(request, *args, **kwargs)
