@@ -33,6 +33,12 @@ class ListRetrieveStep(ReadOnlyModelViewSet):
                          Prefetch('textarea', queryset=models.FieldTextarea.objects.all().only('textarea', 'identify')),
                          ). \
         only('what_project__name')
+    # queryset = models.Step.objects. \
+    #     select_related('what_project'). \
+    #     prefetch_related('text', 'date', 'SF_time', 'textarea'). \
+    #     only('what_project__name',
+    #          'text__text', 'text__identify', 'date__identify', 'date__time', 'SF_time__start', 'SF_time__finish',
+    #          'SF_time__identify', 'textarea__identify', 'textarea__textarea')
 
 
 class CRUDProjectViewSet(ModelViewSet):
