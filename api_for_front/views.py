@@ -46,7 +46,7 @@ class MainProjectViewSet(ModelViewSet):
     queryset = models.MainProject.objects.prefetch_related('steps')
 
     def create(self, request, *args, **kwargs):
-        super(self).create(request, *args, **kwargs)
+        super(MainProjectViewSet, self).create(request, *args, **kwargs)
         return Response({'status': 'ok'})
 
     def perform_create(self, serializer):

@@ -9,6 +9,7 @@ from . import models
 class MainKO(admin.ModelAdmin):
     list_display = ['id', 'name', 'user']
     list_display_links = ['id', 'name']
+    search_fields = ['name']
     save_on_top = True
     list_per_page = 30
 
