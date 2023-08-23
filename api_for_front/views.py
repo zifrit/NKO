@@ -43,11 +43,14 @@ class ListRetrieveStep(ReadOnlyModelViewSet):
 
 class CRUDProjectViewSet(ModelViewSet):
     serializer_class = serializers.MainKoSerializer
-    queryset = models.MainProject.objects.prefetch_related('steps',
-                                                           'steps__textarea',
-                                                           'steps__text',
-                                                           'steps__date',
-                                                           'steps__SF_time')
+    queryset = models.MainProject.objects.prefetch_related('steps')
+
+    def create(self, request, *args, **kwargs):
+        super(self).create(request, *args, **kwargs)
+        return Response({'status': 'ok'})
+
+    def perform_create(self, serializer):
+        return serializer.save(user_id=1)
 
 
 class ListCreateMainTableKo(generics.ListCreateAPIView):

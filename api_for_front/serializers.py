@@ -25,10 +25,10 @@ class ViewStageSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep['text'] = {b.identify: b.text for b in instance.text.all()}
-        rep['date'] = {b.identify: b.time for b in instance.date.all()}
-        rep['SF_time'] = {b.identify: f'{b.start} : {b.finish}' for b in instance.SF_time.all()}
-        rep['textarea'] = {b.identify: b.textarea for b in instance.textarea.all()}
+        rep['text'] = {field.identify: field.text for field in instance.text.all()}
+        rep['date'] = {field.identify: field.time for field in instance.date.all()}
+        rep['SF_time'] = {field.identify: f'{field.start} : {field.finish}' for field in instance.SF_time.all()}
+        rep['textarea'] = {field.identify: field.textarea for field in instance.textarea.all()}
         return rep
 
     class Meta:
@@ -40,7 +40,7 @@ class MainKoSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         rep = super().to_representation(instance)
         steps = instance.steps.all()
-        rep['steps'] = ViewStageSerializer(instance=steps, many=True).data
+        rep['steps'] = {field.id: field.name for field in instance.steps.all()}
         return rep
 
     class Meta:
