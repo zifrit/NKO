@@ -41,7 +41,7 @@ class ListRetrieveStep(ReadOnlyModelViewSet):
     #          'SF_time__identify', 'textarea__identify', 'textarea__textarea')
 
 
-class CRUDProjectViewSet(ModelViewSet):
+class MainProjectViewSet(ModelViewSet):
     serializer_class = serializers.MainKoSerializer
     queryset = models.MainProject.objects.prefetch_related('steps')
 
@@ -53,20 +53,15 @@ class CRUDProjectViewSet(ModelViewSet):
         return serializer.save(user_id=1)
 
 
-class ListCreateMainTableKo(generics.ListCreateAPIView):
-    serializer_class = serializers.MainKoSerializer
-    queryset = models.MainProject.objects.prefetch_related('steps',
-                                                           'steps__textarea',
-                                                           'steps__text',
-                                                           'steps__date',
-                                                           'steps__SF_time')
+class LinkStepViewSet(ModelViewSet):
+    serializer_class = serializers.LinkStepSerializer
+    queryset = models.LinksStep.objects.all()
 
     def create(self, request, *args, **kwargs):
-        super(ListCreateMainTableKo, self).create(request, *args, **kwargs)
+        if request.data['start_id'] == request.data['end_id']:
+            return Response({'message': 'Начало и конец не могут быть одинаковыми'}, status=status.HTTP_400_BAD_REQUEST)
+        super().create(request, *args, **kwargs)
         return Response({'status': 'ok'})
-
-    def perform_create(self, serializer):
-        return serializer.save(user_id=1)
 
 
 class CreateTemplatesStep(generics.CreateAPIView):
