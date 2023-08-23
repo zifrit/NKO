@@ -5,7 +5,7 @@ from . import models
 class CreateStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
-        fields = ['name', 'what_project', 'templates_schema']
+        fields = ['name', 'project_id', 'templates_schema']
 
 
 class CreateTemplatesStepSerializer(serializers.ModelSerializer):
@@ -21,7 +21,7 @@ class CreateTextareaFieldSerializer(serializers.ModelSerializer):
 
 
 class ViewStageSerializer(serializers.ModelSerializer):
-    what_project = serializers.CharField(source='what_project.name')
+    project_id = serializers.CharField(source='project_id.name')
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
@@ -33,7 +33,7 @@ class ViewStageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Step
-        fields = ['id', 'what_project']
+        fields = ['id', 'project_id']
 
 
 class MainKoSerializer(serializers.ModelSerializer):

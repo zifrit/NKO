@@ -25,14 +25,14 @@ class CreateTextareaFieldAPI(generics.CreateAPIView):
 class ListRetrieveStep(ReadOnlyModelViewSet):
     serializer_class = serializers.ViewStageSerializer
     queryset = models.Step.objects. \
-        select_related('what_project'). \
+        select_related('project_id'). \
         prefetch_related(Prefetch('text', queryset=models.FieldText.objects.all().only('text', 'identify')),
                          Prefetch('date', queryset=models.FieldDate.objects.all().only('time', 'identify')),
                          Prefetch('SF_time', queryset=models.FieldStartFinishTime.objects.all().only('start', 'finish',
                                                                                                      'identify')),
                          Prefetch('textarea', queryset=models.FieldTextarea.objects.all().only('textarea', 'identify')),
                          ). \
-        only('what_project__name')
+        only('project_id__name')
     # queryset = models.Step.objects. \
     #     select_related('what_project'). \
     #     prefetch_related('text', 'date', 'SF_time', 'textarea'). \
@@ -79,7 +79,7 @@ class CreateTemplatesStep(generics.CreateAPIView):
 
 
 class CreateStep(generics.CreateAPIView):
-    queryset = models.Step.objects.select_related('templates_schema').prefetch_related('text', 'textarea')
+    queryset = models.Step.objects.select_related('templates_schema').only('templates_schema', 'project_id', 'name')
     serializer_class = serializers.CreateStepSerializer
 
     def perform_create(self, serializer):

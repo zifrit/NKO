@@ -46,8 +46,8 @@ class StepTemplates(models.Model):
 
 class Step(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
-    what_project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
-                                     related_name='steps')
+    project_id = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
+                                   related_name='steps')
     templates_schema = models.ForeignKey(to='StepTemplates', on_delete=models.PROTECT,
                                          verbose_name='Схема для создания', related_name='copy_steps')
     date = models.ManyToManyField(to='FieldDate', verbose_name='Дата', blank=True)
