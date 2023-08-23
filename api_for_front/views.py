@@ -47,7 +47,7 @@ class MainProjectViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         super(MainProjectViewSet, self).create(request, *args, **kwargs)
-        return Response({'status': 'ok'})
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         return serializer.save(user_id=1)
@@ -61,7 +61,7 @@ class LinkStepViewSet(ModelViewSet):
         if request.data['start_id'] == request.data['end_id']:
             return Response({'message': 'Начало и конец не могут быть одинаковыми'}, status=status.HTTP_400_BAD_REQUEST)
         super().create(request, *args, **kwargs)
-        return Response({'status': 'ok'})
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
 
 
 class CreateTemplatesStep(generics.CreateAPIView):
@@ -73,7 +73,7 @@ class CreateTemplatesStep(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         super().create(request, *args, **kwargs)
-        return Response({'status': 'ok'})
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
 
 
 class CreateStep(generics.CreateAPIView):
@@ -87,20 +87,24 @@ class CreateStep(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         super().create(request, *args, **kwargs)
-        return Response({'status': 'ok'})
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
 
 
-class AddInfoInStage(generics.RetrieveUpdateAPIView):
-    queryset = models.Step.objects.prefetch_related('text', 'textarea')
-    serializer_class = serializers.ViewStageSerializer
+class AddInfoInStage(APIView):
 
-    def update(self, request, *args, **kwargs):
-        print(self.get_object().id)
-        update = request.data['update']
-        if update['text']:
-            for key, value in update['text'].items():
-                models.FieldText.objects.filter(identify=key).update(text=value)
-        if update['textarea']:
-            for key, value in update['textarea'].items():
-                models.FieldTextarea.objects.filter(identify=key).update(textarea=value)
-        return Response({'status': 'ok'})
+    def put(self, request):
+        data = request.data
+        if data.get('text', False):
+            for id_filed, value in data['text'].items():
+                models.FieldText.objects.filter(id=int(id_filed)).update(text=value)
+        if data.get('textarea', False):
+            for id_filed, value in data['textarea'].items():
+                models.FieldTextarea.objects.filter(id=int(id_filed)).update(textarea=value)
+        if data.get('date', False):
+            for id_filed, value in data['date'].items():
+                models.FieldDate.objects.filter(id=int(id_filed)).update(time=value)
+        # todo нужно проверить как сохраняется дата
+        # if update['textarea']:
+        #     for id_filed, value in update['textarea'].items():
+        #         models.FieldTextarea.objects.get(id=id_filed).update(textarea=value)
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
