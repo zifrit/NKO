@@ -3,6 +3,9 @@ from django.contrib.auth.models import User
 
 
 class MainProject(models.Model):
+    """
+    Model MainProject information about the main project
+    """
     name = models.CharField(max_length=255, verbose_name='Название проекта', db_index=True)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name='Кто создал')
     date_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создание')
@@ -16,6 +19,9 @@ class MainProject(models.Model):
 
 
 class LinksStep(models.Model):
+    """
+    Model LinksStep information about the relationship between tables
+    """
     start_id = models.PositiveIntegerField(verbose_name='начало связи')
     end_id = models.PositiveIntegerField(verbose_name='конец связи')
     description = models.CharField(max_length=255, verbose_name='описания')
@@ -23,6 +29,9 @@ class LinksStep(models.Model):
 
 
 class ProjectFiles(models.Model):
+    """
+    Model files main projects
+    """
     file_name = models.CharField(verbose_name='Название файла', max_length=255)
     path_file = models.FileField(upload_to='file/%Y/%m.%d/', verbose_name='Файл')
     link_main_project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='связь с проектом',
@@ -32,12 +41,18 @@ class ProjectFiles(models.Model):
 
 
 class ProjectImages(models.Model):
+    """
+    Model images main projects
+    """
     file_name = models.CharField(verbose_name='Название файла', max_length=255)
     path_file = models.FileField(upload_to='images/%Y/%m.%d/', verbose_name='Файл')
     link_main_project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='Объект привязки')
 
 
 class StepTemplates(models.Model):
+    """
+    Model template for create a step
+    """
     name = models.CharField(max_length=255, verbose_name='Название схемы', db_index=True, unique=True)
     user = models.ForeignKey(to=User, on_delete=models.SET_NULL, verbose_name='Кто создал', null=True)
     schema = models.JSONField(verbose_name='схема этапа', default=dict)
@@ -45,6 +60,9 @@ class StepTemplates(models.Model):
 
 
 class Step(models.Model):
+    """
+    Model step. show information the step need to fill out
+    """
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
     project_id = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
                                    related_name='steps')
@@ -66,6 +84,9 @@ class Step(models.Model):
 
 
 class FieldText(models.Model):
+    """
+    Text fild model step
+    """
     identify = models.CharField(max_length=255, verbose_name='Идентификатор поля', blank=True)
     name_field = models.CharField(max_length=255, verbose_name='Тип поля', default='Текст')
     text = models.CharField(max_length=255, verbose_name='Текст', blank=True)
@@ -74,6 +95,9 @@ class FieldText(models.Model):
 
 
 class FieldTextarea(models.Model):
+    """
+    Textarea fild model step
+    """
     identify = models.CharField(max_length=255, verbose_name='Идентификатор поля', blank=True)
     name_field = models.CharField(max_length=255, verbose_name='Тип поля', default='Большой текс')
     textarea = models.TextField(verbose_name='Большой текст', blank=True)
@@ -82,6 +106,9 @@ class FieldTextarea(models.Model):
 
 
 class FieldDate(models.Model):
+    """
+    Date fild model step
+    """
     identify = models.CharField(max_length=255, verbose_name='Идентификатор поля', blank=True)
     name_field = models.CharField(max_length=255, verbose_name='Тип поля', default='Дата')
     time = models.DateField(verbose_name='Дата', blank=True)
@@ -90,6 +117,9 @@ class FieldDate(models.Model):
 
 
 class FieldStartFinishTime(models.Model):
+    """
+    StartFinishTime fild model step
+    """
     identify = models.CharField(max_length=255, verbose_name='Идентификатор поля', blank=True)
     name_field = models.CharField(max_length=255, verbose_name='Тип поля', default='Начало-Конец время')
     start = models.DateTimeField(verbose_name='Начало', blank=True)

@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db.models import Prefetch
 
 # Create your views here.
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -23,7 +24,7 @@ class CreateTextareaFieldAPI(generics.CreateAPIView):
 
 
 class ListRetrieveStep(ReadOnlyModelViewSet):
-    serializer_class = serializers.ViewStageSerializer
+    serializer_class = serializers.ViewStepSerializer
     queryset = models.Step.objects. \
         select_related('project_id'). \
         prefetch_related(Prefetch('text', queryset=models.FieldText.objects.all().only('text', 'identify')),
@@ -57,6 +58,9 @@ class LinkStepViewSet(ModelViewSet):
     serializer_class = serializers.LinkStepSerializer
     queryset = models.LinksStep.objects.all()
 
+    @extend_schema(
+        description='Returns 404 if start_id == end_id'
+    )
     def create(self, request, *args, **kwargs):
         if request.data['start_id'] == request.data['end_id']:
             return Response({'message': 'Начало и конец не могут быть одинаковыми'}, status=status.HTTP_400_BAD_REQUEST)
@@ -92,6 +96,12 @@ class CreateStep(generics.CreateAPIView):
 
 class AddInfoInStage(APIView):
 
+    @extend_schema(
+        responses={
+            200: True,
+            404: True,
+        }
+    )
     def put(self, request):
         data = request.data
         if data.get('text', False):

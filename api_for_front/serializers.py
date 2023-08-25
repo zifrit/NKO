@@ -20,7 +20,7 @@ class CreateTextareaFieldSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ViewStageSerializer(serializers.ModelSerializer):
+class ViewStepSerializer(serializers.ModelSerializer):
     project_id = serializers.CharField(source='project_id.name')
 
     def to_representation(self, instance):
@@ -39,7 +39,6 @@ class ViewStageSerializer(serializers.ModelSerializer):
 class MainKoSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        steps = instance.steps.all()
         rep['steps'] = {field.id: field.name for field in instance.steps.all()}
         return rep
 
