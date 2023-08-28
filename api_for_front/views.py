@@ -24,6 +24,9 @@ class CreateTextareaFieldAPI(generics.CreateAPIView):
 
 
 class ListRetrieveStep(ReadOnlyModelViewSet):
+    """
+    Список и получение одной записи этапов
+    """
     serializer_class = serializers.ViewStepSerializer
     queryset = models.Step.objects. \
         select_related('project_id'). \
@@ -43,6 +46,9 @@ class ListRetrieveStep(ReadOnlyModelViewSet):
 
 
 class MainProjectViewSet(ModelViewSet):
+    """
+    CRUd для главной модели
+    """
     serializer_class = serializers.MainKoSerializer
     queryset = models.MainProject.objects.prefetch_related('steps')
 
@@ -55,6 +61,9 @@ class MainProjectViewSet(ModelViewSet):
 
 
 class LinkStepViewSet(ModelViewSet):
+    """
+    CRUD для связей между этапами
+    """
     serializer_class = serializers.LinkStepSerializer
     queryset = models.LinksStep.objects.all()
 
@@ -69,6 +78,9 @@ class LinkStepViewSet(ModelViewSet):
 
 
 class CreateTemplatesStep(generics.CreateAPIView):
+    """
+    Создание шаблонов для создания этапов
+    """
     queryset = models.StepTemplates.objects.select_related('user')
     serializer_class = serializers.CreateTemplatesStepSerializer
 
@@ -81,6 +93,9 @@ class CreateTemplatesStep(generics.CreateAPIView):
 
 
 class CreateStep(generics.CreateAPIView):
+    """
+    Создание этапа
+    """
     queryset = models.Step.objects.select_related('templates_schema').only('templates_schema', 'project_id', 'name')
     serializer_class = serializers.CreateStepSerializer
 
@@ -95,11 +110,14 @@ class CreateStep(generics.CreateAPIView):
 
 
 class AddInfoInStage(APIView):
+    """
+    Заполнение информации в этапе
+    """
 
     @extend_schema(
         responses={
-            200: True,
-            404: True,
+            200: OpenApiResponse(description='{"type_field":{"id_field":"change_info"}\n'
+                                             '{"type_field":{"id_field":"change_info"}'),
         }
     )
     def put(self, request):
