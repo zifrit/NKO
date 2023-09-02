@@ -9,8 +9,8 @@ router.register(r'steps', views.ListRetrieveStep)
 router.register(r'links', views.LinkStepViewSet)
 
 urlpatterns = [
-    path('create_step_template_schema/', views.CreateTemplatesStep.as_view()),
-    path('create_step/', views.CreateStep.as_view()),
-    path('update_step_info/', views.AddInfoInStage.as_view()),
+    path('create-step-template-schema/', views.CreateTemplatesStep.as_view()),
+    path('create-step/', views.CreateStep.as_view()),
+    path('update-step_info/', views.AddInfoInStage.as_view()),
     path('', include(router.urls)),
 ]
