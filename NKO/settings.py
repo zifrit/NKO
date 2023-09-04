@@ -20,7 +20,7 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY", default='894pgirujos;kmldq[409rgjieomk;')
 
 DEBUG = int(os.environ.get("DEBUG", default=True))
 
@@ -53,6 +53,7 @@ PROJECT = [
 ]
 
 LIBRARY_APP = [
+    # 'whitenoise', # когда буду запускать отдельный контейнер
     'rest_framework',
     'debug_toolbar',
     'django_filters',
@@ -69,7 +70,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "debug_toolbar.middleware.DebugToolbarMiddleware"
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',  # когда буду запускать отдельный контейнер
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'NKO.urls'
@@ -157,8 +159,7 @@ STATIC_ROOT = 'static'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    # роегистрация идет только по токенам для проверки просто по логину паролю нужно закомитеть
-    # rest_framework_simplejwt.authentication.JWTAuthentication
+    # регистрация идет только по токенам для проверки просто по логину паролю нужно закомитеть
     'DEFAULT_AUTHENTICATION_CLASSES': (
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.BasicAuthentication',
