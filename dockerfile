@@ -5,24 +5,25 @@ SHELL ["/bin/bash", "-c"]
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-
-
-
 RUN pip install --upgrade pip
-
-RUN useradd -rms /bin/bash am && chmod 777 /opt /run #am это имя нового пользователя
 
 WORKDIR /am
 
-RUN mkdir /am/static && mkdir /am/media && chown -R am:am /am && chmod 755 /am
+RUN mkdir /am/static && mkdir /am/media
 
-RUN pip install "poetry==1.4.2"
+RUN pip install poetry
 RUN poetry config virtualenvs.create false --local
 
-COPY --chown=am:am . .
+COPY . .
 
 RUN poetry install
 
-
-USER am
-
+# когда буду запускать отдельный контейнер
+#RUN  python manage.py makemigrations &&  \
+#     python manage.py migrate &&  \
+#     python manage.py create_superuser &&  \
+#     python manage.py collectstatic --noinput
+#
+#EXPOSE 8000
+#
+#CMD ["gunicorn","-b","0.0.0.0:8000","NKO.wsgi:application"]
