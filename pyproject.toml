@@ -21,6 +21,7 @@ drf-spectacular = "^0.26.4"
 redis = "^4.6.0"
 coverage = "^7.3.0"
 whitenoise = "^6.5.0"
+django-cors-headers = "^4.2.0"
 
 
 [tool.poetry.group.dev.dependencies]

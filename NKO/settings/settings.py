@@ -58,6 +58,7 @@ LIBRARY_APP = [
     'debug_toolbar',
     'django_filters',
     'drf_spectacular',
+    'corsheaders',
 ]
 
 INSTALLED_APPS = BASE_APPS + PROJECT + LIBRARY_APP
@@ -65,6 +66,7 @@ INSTALLED_APPS = BASE_APPS + PROJECT + LIBRARY_APP
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -201,3 +203,25 @@ LOGGING = {
 # without Docker
 # create docker images redis "docker  run -p 127.0.0.1:6379:6379 --name redis-celery -d redis"
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
