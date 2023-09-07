@@ -199,10 +199,10 @@ LOGGING = {
 
 # CELERY
 # in Docker
-# CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_BROKER_URL = 'redis://redis:6379/0'
 # without Docker
 # create docker images redis "docker  run -p 127.0.0.1:6379:6379 --name redis-celery -d redis"
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+# CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True

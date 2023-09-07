@@ -3,7 +3,7 @@ import time
 
 from celery import Celery
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'NKO.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'NKO.settings.settings')
 
 app = Celery('nko')
 app.config_from_object('django.conf:settings', namespace='CELERY')
