@@ -23,7 +23,7 @@ class CreateTextareaFieldAPI(generics.CreateAPIView):
     queryset = models.FieldTextarea
 
 
-class ListRetrieveStep(ReadOnlyModelViewSet):
+class ListStep(ReadOnlyModelViewSet):
     """
     Список и получение одной записи этапов
     """

@@ -5,7 +5,7 @@ from . import views
 
 router = routers.SimpleRouter()
 router.register(r'project', views.MainProjectViewSet)
-router.register(r'steps', views.ListRetrieveStep)
+router.register(r'steps', views.ListStep)
 router.register(r'links', views.LinkStepViewSet)
 
 urlpatterns = [

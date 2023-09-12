@@ -61,7 +61,7 @@ class StepTemplates(models.Model):
 
 class Step(models.Model):
     """
-    Model step. show information the step need to fill out
+    Model step. show information about step, and what fields he has
     """
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
     project_id = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
@@ -118,7 +118,7 @@ class FieldDate(models.Model):
 
 class FieldStartFinishTime(models.Model):
     """
-    StartFinishTime fild model step
+    Start-Finish-Time fild model step
     """
     identify = models.CharField(max_length=255, verbose_name='Идентификатор поля', blank=True)
     name_field = models.CharField(max_length=255, verbose_name='Тип поля', default='Начало-Конец время')
