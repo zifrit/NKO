@@ -22,7 +22,7 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 SECRET_KEY = os.environ.get("SECRET_KEY", default='894pgirujos;kmldq[409rgjieomk;')
 
-DEBUG = int(os.environ.get("DEBUG", default=True))
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 INTERNAL_IPS = [
@@ -101,12 +101,8 @@ WSGI_APPLICATION = 'NKO.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.getenv('POSTGRES_HOST', 'db'),
-        'PORT': os.getenv('POSTGRES_PORT', 5432),
-        'USER': os.getenv('POSTGRES_USER', 'postgres'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
-        'NAME': os.getenv('POSTGRES_DB', "postgres")
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -145,7 +141,7 @@ USE_TZ = True
 MEDIA_URL = '/media/'
 MEDIA_ROOT = 'media'
 
-STATIC_DIR = os.path.join(BASE_DIR, "static")
+STATIC_DIR = BASE_DIR / "static"
 STATIC_URL = '/static/'
 STATIC_ROOT = 'static'
 # Default primary key field type

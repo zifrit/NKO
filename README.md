@@ -49,7 +49,7 @@ Clone project to your computer
 Need to change the filed in celery.py, manage.py, wsgi.py files\
 Before
 
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'NKO.settings.settings_dev')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'NKO.settings.settings')
 After
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'NKO.settings.settings_prod')

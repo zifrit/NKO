@@ -17,13 +17,3 @@ RUN poetry config virtualenvs.create false --local
 COPY . .
 
 RUN poetry install
-
-# когда буду запускать отдельный контейнер
-#RUN  python manage.py makemigrations &&  \
-#     python manage.py migrate &&  \
-#     python manage.py create_superuser &&  \
-#     python manage.py collectstatic --noinput
-#
-#EXPOSE 8000
-#
-#CMD ["gunicorn","-b","0.0.0.0:8000","NKO.wsgi:application"]
