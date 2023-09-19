@@ -75,6 +75,7 @@ class Step(models.Model):
     date_create = models.DateTimeField(verbose_name='Дата создание', auto_now_add=True)
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)
+    metadata = models.JSONField(verbose_name='корды и размеры для этапа', default=dict)
 
     def __str__(self):
         return self.name
