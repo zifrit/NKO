@@ -49,8 +49,23 @@ class MainProjectViewSet(ModelViewSet):
     """
     CRUd для главной модели
     """
-    serializer_class = serializers.MainKoSerializer
+    serializer_class = serializers.ListMainKoSerializer
+    # todo нужно оптимизировать запрос что бы только выдавал нужные поля
+    # queryset = models.MainProject.objects.prefetch_related(
+    #     Prefetch('steps', queryset=models.Step.objects.only('pk', 'metadata'))
+    # ).all()
     queryset = models.MainProject.objects.prefetch_related('steps')
+
+    def retrieve(self, request, *args, **kwargs):
+        query = models.MainProject.objects.only('id', 'name').get(pk=kwargs['pk'])
+        data = serializers.RetrieveMainKoSerializer(instance=query).data
+        return Response(data)
+
+    def list(self, request, *args, **kwargs):
+        query = models.MainProject.objects.all().only(
+            'name', 'date_create', 'date_start', 'date_end', 'last_change', 'user__username').select_related('user')
+        data = serializers.ListMainKoSerializer(instance=query, many=True).data
+        return Response(data)
 
     def create(self, request, *args, **kwargs):
         super(MainProjectViewSet, self).create(request, *args, **kwargs)

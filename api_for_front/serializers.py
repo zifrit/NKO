@@ -36,15 +36,24 @@ class ViewStepSerializer(serializers.ModelSerializer):
         fields = ['id', 'project_id']
 
 
-class MainKoSerializer(serializers.ModelSerializer):
+class RetrieveMainKoSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep['steps'] = {field.id: field.name for field in instance.steps.all()}
+        rep['steps'] = {field.id: field.metadata for field in
+                        models.Step.objects.filter(pk=instance.pk).only('id', 'metadata')}
         return rep
 
     class Meta:
         model = models.MainProject
-        exclude = ['user']
+        fields = ['id', 'name']
+
+
+class ListMainKoSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source='user.username')
+
+    class Meta:
+        model = models.MainProject
+        exclude = ['structure_project']
 
 
 class LinkStepSerializer(serializers.ModelSerializer):
