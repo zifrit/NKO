@@ -58,6 +58,7 @@ LIBRARY_APP = [
     'debug_toolbar',
     'django_filters',
     'drf_spectacular',
+    'django_extensions',
     'corsheaders',
 ]
 
