@@ -2,12 +2,16 @@ from celery import shared_task
 
 
 @shared_task
-def test_tak():
-    pass
+def replace_a_place(list_steps: dict):
+    from api_for_front import models
+    from django.db import transaction
+    with transaction.atomic():
+        for key, value in list_steps.items():
+            models.Step.objects.select_for_update().filter(pk=key).update(metadata=value)
 
 
 @shared_task
-def create_fields_fro_step(pk_step):
+def create_fields_fro_step(pk_step: int):
     from api_for_front import models
     from django.db import transaction
 
