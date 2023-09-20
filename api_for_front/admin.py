@@ -16,7 +16,7 @@ class MainKO(admin.ModelAdmin):
 
 @admin.register(models.Step)
 class MainKO(admin.ModelAdmin):
-    list_display = ['id', 'name']
+    list_display = ['id', 'name', 'project_id_id']
     list_display_links = ['id', 'name']
     search_fields = ['name']
     save_on_top = True

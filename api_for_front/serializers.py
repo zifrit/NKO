@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import serializers
 from . import models
 
@@ -39,8 +40,10 @@ class ViewStepSerializer(serializers.ModelSerializer):
 class RetrieveMainKoSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep['steps'] = {field.id: field.metadata for field in
-                        models.Step.objects.filter(pk=instance.pk).only('id', 'metadata')}
+        steps = models.Step.objects.filter(project_id=instance.pk).only('id', 'metadata')
+        rep['steps'] = {field.id: field.metadata for field in steps}
+        links = models.LinksStep.objects.filter(Q(start_id__in=steps) | Q(end_id__in=steps))
+        rep['links'] = LinkStepSerializer(instance=links, many=True).data
         return rep
 
     class Meta:
