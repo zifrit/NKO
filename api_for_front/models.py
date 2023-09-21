@@ -55,7 +55,7 @@ class StepTemplates(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название схемы', db_index=True, unique=True)
     user = models.ForeignKey(to=User, on_delete=models.SET_NULL, verbose_name='Кто создал', null=True)
     schema = models.JSONField(verbose_name='схема этапа')
-    example_metadata = models.JSONField(verbose_name='мета данные', default=dict)
+    example_metadata = models.JSONField(verbose_name='мета данные')
 
 
 class Step(models.Model):
