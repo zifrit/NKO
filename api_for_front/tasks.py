@@ -16,26 +16,22 @@ def create_fields_fro_step(pk_step: int):
     from django.db import transaction
 
     with transaction.atomic():
-        step = models.Step.objects.get(pk=pk_step)
-        schema = step.templates_schema.schema_for_create
-        if schema.get('f_text', False):
-            item_objects = [models.FieldText(link_step=step)] * schema['f_text']
-            models.FieldText.objects.bulk_create(item_objects)
-            field_id = models.FieldText.objects.filter(link_step=step).only('id')
-            step.text.add(*field_id)
-        if schema.get('f_textarea', False):
-            item_objects = [models.FieldTextarea(link_step=step)] * schema['f_textarea']
-            models.FieldTextarea.objects.bulk_create(item_objects)
-            field_id = models.FieldTextarea.objects.filter(link_step=step).only('id')
-            step.textarea.add(*field_id)
-        if schema.get('f_date', False):
-            item_objects = [models.FieldDate(link_step=step)] * schema['f_date']
-            models.FieldDate.objects.bulk_create(item_objects)
-            field_id = models.FieldDate.objects.filter(link_step=step).only('id')
-            step.date.add(*field_id)
-        if schema.get('f_s_f_time', False):
-            item_objects = [models.FieldStartFinishTime(link_step=step)] * schema['f_s_f_time']
-            models.FieldStartFinishTime.objects.bulk_create(item_objects)
-            field_id = models.FieldStartFinishTime.objects.filter(link_step=step).only('id')
-            step.date.add(*field_id)
+        step = models.Step.objects.select_related('templates_schema').\
+            only('templates_schema__schema', 'name').\
+            get(id=pk_step)
+        fields = step.templates_schema.schema
+        print(fields)
+        for type_field, identify in fields.items():
+            if type_field.startswith('f_text'):
+                field = models.FieldText.objects.create(link_step=step, identify=identify)
+                step.text.add(field.id)
+            if type_field.startswith('f_textarea'):
+                field = models.FieldText.objects.create(link_step=step, identify=identify)
+                step.text.add(field.id)
+            if type_field.startswith('f_date'):
+                field = models.FieldText.objects.create(link_step=step, identify=identify)
+                step.text.add(field.id)
+            if type_field.startswith('f_time_interval'):
+                field = models.FieldText.objects.create(link_step=step, identify=identify)
+                step.text.add(field.id)
         step.save()

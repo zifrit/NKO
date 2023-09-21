@@ -38,7 +38,7 @@ class ListStep(ReadOnlyModelViewSet):
                                                                                                      'identify')),
                          Prefetch('textarea', queryset=models.FieldTextarea.objects.all().only('textarea', 'identify')),
                          ). \
-        only('project_id__name')
+        only('project_id__name', 'metadata')
     # queryset = models.Step.objects. \
     #     select_related('what_project'). \
     #     prefetch_related('text', 'date', 'SF_time', 'textarea'). \
@@ -64,9 +64,9 @@ class MainProjectViewSet(ModelViewSet):
             "id": 1,
             "name": 'somename',
             "steps": {
-                "id_step1": 'json structure',
-                "id_step2": 'json structure',
-                "id_step3": 'json structure',
+                "id_step1": 'json metadata',
+                "id_step2": 'json metadata',
+                "id_step3": 'json metadata',
             },
             "links": [
                 {
@@ -112,11 +112,11 @@ class MainProjectViewSet(ModelViewSet):
         return Response({'status': 'ok'}, status=status.HTTP_200_OK)
 
     @extend_schema(examples=[OpenApiExample(
-        "Post example",
+        "put example",
         value={
             "name": "test",
             "structures": {
-                "id_steps": 'json structure'
+                "id_steps": 'json metadata'
             }
         },
     )], description='successful put response {"status": "ok"}')
@@ -127,7 +127,7 @@ class MainProjectViewSet(ModelViewSet):
         return Response({'status': 'ok'}, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
-        return serializer.save(user_id=1)
+        return serializer.save(user=self.request.user)
 
 
 class LinkStepViewSet(ModelViewSet):
@@ -160,6 +160,11 @@ class CreateTemplatesStep(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         super().create(request, *args, **kwargs)
         return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+
+
+class ListSchema(generics.ListAPIView):
+    queryset = models.StepTemplates.objects.all()
+    serializer_class = serializers.CreateTemplatesStepSerializer
 
 
 class CreateStep(generics.CreateAPIView):

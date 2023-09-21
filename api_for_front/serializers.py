@@ -6,13 +6,13 @@ from . import models
 class CreateStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
-        fields = ['name', 'project_id', 'templates_schema']
+        fields = ['name', 'project_id', 'templates_schema', 'metadata']
 
 
 class CreateTemplatesStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.StepTemplates
-        fields = ['name', 'schema', 'schema_for_create']
+        fields = ['id', 'name', 'schema']
 
 
 class CreateTextareaFieldSerializer(serializers.ModelSerializer):
@@ -34,7 +34,7 @@ class ViewStepSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Step
-        fields = ['id', 'project_id']
+        fields = ['id', 'project_id', 'metadata']
 
 
 class RetrieveMainKoSerializer(serializers.ModelSerializer):

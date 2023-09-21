@@ -12,7 +12,6 @@ class MainProject(models.Model):
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)
     last_change = models.DateTimeField(auto_now=True, verbose_name='последние изменения')
-    structure_project = models.JSONField(verbose_name='структура проекта', default=dict)
 
     def __str__(self):
         return f'{self.user.username} {self.name}'
@@ -55,8 +54,8 @@ class StepTemplates(models.Model):
     """
     name = models.CharField(max_length=255, verbose_name='Название схемы', db_index=True, unique=True)
     user = models.ForeignKey(to=User, on_delete=models.SET_NULL, verbose_name='Кто создал', null=True)
-    schema = models.JSONField(verbose_name='схема этапа', default=dict)
-    schema_for_create = models.JSONField(verbose_name='схема для создания этапа', default=dict)
+    schema = models.JSONField(verbose_name='схема этапа')
+    example_metadata = models.JSONField(verbose_name='мета данные', default=dict)
 
 
 class Step(models.Model):
@@ -75,7 +74,7 @@ class Step(models.Model):
     date_create = models.DateTimeField(verbose_name='Дата создание', auto_now_add=True)
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)
-    metadata = models.JSONField(verbose_name='корды и размеры для этапа', default=dict)
+    metadata = models.JSONField(verbose_name='корды и размеры для этапа')
 
     def __str__(self):
         return self.name
