@@ -7,7 +7,7 @@ def replace_a_place(list_steps: dict):
     from django.db import transaction
     with transaction.atomic():
         for key, value in list_steps.items():
-            models.Step.objects.select_for_update().filter(pk=key).update(metadata=value)
+            models.Step.objects.select_for_update().filter(pk=int(key)).update(metadata=value)
 
 
 @shared_task

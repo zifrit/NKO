@@ -1,15 +1,17 @@
+import json
+
 from django.contrib.auth.models import User
 from django.db.models import Prefetch
 
 # Create your views here.
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from . import models, serializers
-from .tasks import create_fields_fro_step
+from .tasks import create_fields_fro_step, replace_a_place
 from django.db import transaction
 
 
@@ -49,26 +51,79 @@ class MainProjectViewSet(ModelViewSet):
     """
     CRUd для главной модели
     """
-    serializer_class = serializers.ListMainKoSerializer
+    serializer_class = serializers.RetrieveMainKoSerializer
     # todo нужно оптимизировать запрос что бы только выдавал нужные поля
     # queryset = models.MainProject.objects.prefetch_related(
     #     Prefetch('steps', queryset=models.Step.objects.only('pk', 'metadata'))
     # ).all()
     queryset = models.MainProject.objects.prefetch_related('steps')
 
+    @extend_schema(examples=[OpenApiExample(
+        "get example",
+        value={
+            "id": 1,
+            "name": 'somename',
+            "steps": {
+                "id_step1": 'json structure',
+                "id_step2": 'json structure',
+                "id_step3": 'json structure',
+            },
+            "links": [
+                {
+                    "id": 1,
+                    "start_id": 2,
+                    "end_id": 3,
+                    "description": "string",
+                    "color": "string"
+                }
+            ]
+        },
+    )])
     def retrieve(self, request, *args, **kwargs):
         query = models.MainProject.objects.only('id', 'name').get(pk=kwargs['pk'])
         data = serializers.RetrieveMainKoSerializer(instance=query).data
         return Response(data)
 
+    @extend_schema(examples=[OpenApiExample(
+        "get example",
+        value={
+            "id": 1,
+            "user": "admin",
+            "name": "test",
+            "date_create": "2023-08-04",
+            "date_start": "2023-08-04",
+            "date_end": "2023-09-21",
+            "last_change": "2023-09-21"
+        })])
     def list(self, request, *args, **kwargs):
         query = models.MainProject.objects.all().only(
             'name', 'date_create', 'date_start', 'date_end', 'last_change', 'user__username').select_related('user')
         data = serializers.ListMainKoSerializer(instance=query, many=True).data
         return Response(data)
 
+    @extend_schema(examples=[OpenApiExample(
+        "Post example",
+        value={
+            "name": "test"
+        }
+    )], description='successful post response {"status": "ok"}')
     def create(self, request, *args, **kwargs):
         super(MainProjectViewSet, self).create(request, *args, **kwargs)
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+
+    @extend_schema(examples=[OpenApiExample(
+        "Post example",
+        value={
+            "name": "test",
+            "structures": {
+                "id_steps": 'json structure'
+            }
+        },
+    )], description='successful put response {"status": "ok"}')
+    def update(self, request, *args, **kwargs):
+        super(MainProjectViewSet, self).update(request, *args, **kwargs)
+        replace_a_place.delay(request.data.get('structure'))
+        print(request.data.get('structure'))
         return Response({'status': 'ok'}, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
