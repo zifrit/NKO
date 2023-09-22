@@ -23,6 +23,15 @@ class MainKO(admin.ModelAdmin):
     list_per_page = 30
 
 
+@admin.register(models.StepFields)
+class MainKO(admin.ModelAdmin):
+    list_display = ['id', 'step']
+    list_display_links = ['id', 'step']
+    search_fields = ['step__name']
+    save_on_top = True
+    list_per_page = 30
+
+
 @admin.register(models.LinksStep)
 class MainKO(admin.ModelAdmin):
     list_display = ['id', 'description', 'start_id', 'end_id', 'color']

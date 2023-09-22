@@ -62,7 +62,7 @@ class Step(models.Model):
     Model step. show information about step, and what fields he has
     """
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
-    placement = models.JSONField(verbose_name='Расположение', default=dict)
+    placement = models.JSONField(verbose_name='Расположение')
     project_id = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
                                    related_name='steps')
     templates_schema = models.ForeignKey(to='StepTemplates', on_delete=models.SET_NULL, null=True,
@@ -80,8 +80,8 @@ class Step(models.Model):
         verbose_name_plural = 'Steps'
 
 
-class Fields(models.Model):
-    filed = models.JSONField(verbose_name='Поле')
+class StepFields(models.Model):
+    field = models.JSONField(verbose_name='Поле')
     step = models.ForeignKey(verbose_name='Связь с этапом', on_delete=models.CASCADE, to='Step', related_name='fields')
 
     class Meta:

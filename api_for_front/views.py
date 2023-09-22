@@ -5,46 +5,37 @@ from django.db.models import Prefetch
 
 # Create your views here.
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
-from rest_framework import generics, status
+from rest_framework import generics, status, mixins
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
 
 from . import models, serializers
 from .tasks import create_fields_fro_step, replace_a_place
 from django.db import transaction
 
 
-class test(APIView):
-    def get(self, request):
-        return Response({'ds': 'as'})
-
-
-class CreateTextareaFieldAPI(generics.CreateAPIView):
-    serializer_class = serializers.CreateTextareaFieldSerializer
-    queryset = models.FieldTextarea
-
-
-class ListStep(ReadOnlyModelViewSet):
+class Steps(ModelViewSet):
     """
-    Список и получение одной записи этапов
+    CRUd для модели этап
     """
     serializer_class = serializers.ViewStepSerializer
     queryset = models.Step.objects. \
-        select_related('project_id'). \
-        prefetch_related(Prefetch('text', queryset=models.FieldText.objects.all().only('text', 'identify')),
-                         Prefetch('date', queryset=models.FieldDate.objects.all().only('time', 'identify')),
-                         Prefetch('SF_time', queryset=models.FieldStartFinishTime.objects.all().only('start', 'finish',
-                                                                                                     'identify')),
-                         Prefetch('textarea', queryset=models.FieldTextarea.objects.all().only('textarea', 'identify')),
-                         ). \
-        only('project_id__name', 'metadata')
-    # queryset = models.Step.objects. \
-    #     select_related('what_project'). \
-    #     prefetch_related('text', 'date', 'SF_time', 'textarea'). \
-    #     only('what_project__name',
-    #          'text__text', 'text__identify', 'date__identify', 'date__time', 'SF_time__start', 'SF_time__finish',
-    #          'SF_time__identify', 'textarea__identify', 'textarea__textarea')
+        select_related('project_id').prefetch_related('fields').only('project_id__name', 'name', 'placement')
+
+    def perform_create(self, serializer):
+        with transaction.atomic():
+            step = serializer.save()
+            create_fields_fro_step.delay(step.pk)
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return serializers.CreateStepSerializer
+        return serializers.ViewStepSerializer
+
+    def create(self, request, *args, **kwargs):
+        super(Steps, self).create(request, *args, **kwargs)
+        return Response({'status': 'asd'}, status=status.HTTP_200_OK)
 
 
 class MainProjectViewSet(ModelViewSet):
@@ -52,10 +43,6 @@ class MainProjectViewSet(ModelViewSet):
     CRUd для главной модели
     """
     serializer_class = serializers.RetrieveMainKoSerializer
-    # todo нужно оптимизировать запрос что бы только выдавал нужные поля
-    # queryset = models.MainProject.objects.prefetch_related(
-    #     Prefetch('steps', queryset=models.Step.objects.only('pk', 'metadata'))
-    # ).all()
     queryset = models.MainProject.objects.prefetch_related('steps')
 
     @extend_schema(examples=[OpenApiExample(
@@ -80,7 +67,10 @@ class MainProjectViewSet(ModelViewSet):
         },
     )])
     def retrieve(self, request, *args, **kwargs):
-        query = models.MainProject.objects.only('id', 'name').get(pk=kwargs['pk'])
+        query = models.MainProject.objects.prefetch_related(
+            Prefetch('steps', queryset=models.Step.objects.all().only('id', 'placement', 'name', 'project_id__id')),
+            Prefetch('steps__fields', queryset=models.StepFields.objects.all()),
+        ).only('id', 'name').get(pk=kwargs['pk'])
         data = serializers.RetrieveMainKoSerializer(instance=query).data
         return Response(data)
 
@@ -122,8 +112,10 @@ class MainProjectViewSet(ModelViewSet):
     )], description='successful put response {"status": "ok"}')
     def update(self, request, *args, **kwargs):
         super(MainProjectViewSet, self).update(request, *args, **kwargs)
-        replace_a_place.delay(request.data.get('structure'))
-        print(request.data.get('structure'))
+        if not request.data.get('placements', False):
+            return Response({'Error': 'there are no placements'}, status=status.HTTP_400_BAD_REQUEST)
+        replace_a_place.delay(request.data.get('placements'))
+
         return Response({'status': 'ok'}, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
@@ -165,23 +157,6 @@ class CreateTemplatesStep(generics.CreateAPIView):
 class ListSchema(generics.ListAPIView):
     queryset = models.StepTemplates.objects.all()
     serializer_class = serializers.CreateTemplatesStepSerializer
-
-
-class CreateStep(generics.CreateAPIView):
-    """
-    Создание этапа
-    """
-    queryset = models.Step.objects.select_related('templates_schema').only('templates_schema', 'project_id', 'name')
-    serializer_class = serializers.CreateStepSerializer
-
-    def perform_create(self, serializer):
-        with transaction.atomic():
-            step = serializer.save()
-            create_fields_fro_step.delay(step.pk)
-
-    def create(self, request, *args, **kwargs):
-        super().create(request, *args, **kwargs)
-        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
 
 
 class AddInfoInStage(APIView):

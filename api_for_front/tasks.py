@@ -7,31 +7,21 @@ def replace_a_place(list_steps: dict):
     from django.db import transaction
     with transaction.atomic():
         for key, value in list_steps.items():
-            models.Step.objects.select_for_update().filter(pk=int(key)).update(metadata=value)
+            models.Step.objects.select_for_update().filter(pk=int(key)).update(placement=value)
 
 
 @shared_task
-def create_fields_fro_step(pk_step: int):
+def create_fields_for_step(pk_step: int):
     from api_for_front import models
     from django.db import transaction
 
     with transaction.atomic():
-        step = models.Step.objects.select_related('templates_schema').\
-            only('templates_schema__schema', 'name').\
+        step = models.Step.objects.select_related('templates_schema'). \
+            only('templates_schema__schema', 'name'). \
             get(id=pk_step)
         fields = step.templates_schema.schema
-        print(fields)
-        for type_field, identify in fields.items():
-            if type_field.startswith('f_text'):
-                field = models.FieldText.objects.create(link_step=step, identify=identify)
-                step.text.add(field.id)
-            if type_field.startswith('f_textarea'):
-                field = models.FieldText.objects.create(link_step=step, identify=identify)
-                step.text.add(field.id)
-            if type_field.startswith('f_date'):
-                field = models.FieldText.objects.create(link_step=step, identify=identify)
-                step.text.add(field.id)
-            if type_field.startswith('f_time_interval'):
-                field = models.FieldText.objects.create(link_step=step, identify=identify)
-                step.text.add(field.id)
+        step_fields = list()
+        for filed in fields:
+            step_fields += [models.StepFields(field=filed, step=step)]
+        models.StepFields.objects.bulk_create(step_fields)
         step.save()
