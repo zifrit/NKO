@@ -55,7 +55,6 @@ class StepTemplates(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название схемы', db_index=True, unique=True)
     user = models.ForeignKey(to=User, on_delete=models.SET_NULL, verbose_name='Кто создал', null=True)
     schema = models.JSONField(verbose_name='схема этапа')
-    example_metadata = models.JSONField(verbose_name='мета данные')
 
 
 class Step(models.Model):
@@ -63,24 +62,32 @@ class Step(models.Model):
     Model step. show information about step, and what fields he has
     """
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
+    placement = models.JSONField(verbose_name='Расположение', default=dict)
     project_id = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
                                    related_name='steps')
-    templates_schema = models.ForeignKey(to='StepTemplates', on_delete=models.PROTECT,
-                                         verbose_name='Схема для создания', related_name='copy_steps')
-    date = models.ManyToManyField(to='FieldDate', verbose_name='Дата', blank=True)
-    SF_time = models.ManyToManyField(to='FieldStartFinishTime', verbose_name='Срок', blank=True)
-    text = models.ManyToManyField(to='FieldText', verbose_name='Текст', blank=True)
-    textarea = models.ManyToManyField(to='FieldTextarea', verbose_name='Большой текст', blank=True)
+    templates_schema = models.ForeignKey(to='StepTemplates', on_delete=models.SET_NULL, null=True,
+                                         verbose_name='Схема для создания', related_name='steps')
     date_create = models.DateTimeField(verbose_name='Дата создание', auto_now_add=True)
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)
-    metadata = models.JSONField(verbose_name='корды и размеры для этапа')
 
     def __str__(self):
         return self.name
 
     class Meta:
-        ...
+        db_table = 'Steps'
+        verbose_name = 'Step'
+        verbose_name_plural = 'Steps'
+
+
+class Fields(models.Model):
+    filed = models.JSONField(verbose_name='Поле')
+    step = models.ForeignKey(verbose_name='Связь с этапом', on_delete=models.CASCADE, to='Step', related_name='fields')
+
+    class Meta:
+        db_table = 'StepFields'
+        verbose_name = 'StepField'
+        verbose_name_plural = 'StepFields'
 
 
 class FieldText(models.Model):
