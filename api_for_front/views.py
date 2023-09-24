@@ -9,9 +9,11 @@ from rest_framework import generics, status, mixins
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 from . import models, serializers
-from .tasks import create_fields_fro_step, replace_a_place
+from .tasks import create_fields_for_step, replace_a_place
 from django.db import transaction
 
 
@@ -26,40 +28,95 @@ class Steps(ModelViewSet):
     def perform_create(self, serializer):
         with transaction.atomic():
             step = serializer.save()
-            create_fields_fro_step.delay(step.pk)
+            create_fields_for_step.delay(step.pk)
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return serializers.CreateStepSerializer
+        elif self.request.method == 'PUT':
+            return serializers.UpdateStepSerializer
         return serializers.ViewStepSerializer
 
+    @extend_schema(examples=[OpenApiExample(
+        "create example",
+        value={
+            "templates_schema": 14,
+            "name": "room step",
+            "project_id": 1,
+            "placement": {
+                "x": "x",
+                "y": "y",
+                "w": "with",
+                "h": "height"
+            }
+        }
+    )], description='successful put response {"status": "ok"}',
+        responses={
+            201: serializers.CustomResponseSerializer
+        })
     def create(self, request, *args, **kwargs):
-        super(Steps, self).create(request, *args, **kwargs)
-        return Response({'status': 'asd'}, status=status.HTTP_200_OK)
+        return super(Steps, self).create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        return super(Steps, self).update(request, *args, **kwargs)
 
 
 class MainProjectViewSet(ModelViewSet):
     """
     CRUd для главной модели
     """
-    serializer_class = serializers.RetrieveMainKoSerializer
-    queryset = models.MainProject.objects.prefetch_related('steps')
+    serializer_class = serializers.ListMainKoSerializer
+    queryset = models.MainProject.objects.all().only(
+        'name', 'date_create', 'date_start', 'date_end', 'last_change', 'user__username').select_related('user')
+    filter_backends = [
+        SearchFilter,
+        DjangoFilterBackend,
+        OrderingFilter
+    ]
+    search_fields = [
+        "name"
+    ]
+    filterset_fields = [
+        'name',
+        'user__username',
+    ]
+    ordering_fields = [
+        'name',
+        'date_create',
+        'date_start',
+    ]
 
     @extend_schema(examples=[OpenApiExample(
         "get example",
         value={
             "id": 1,
-            "name": 'somename',
-            "steps": {
-                "id_step1": 'json metadata',
-                "id_step2": 'json metadata',
-                "id_step3": 'json metadata',
-            },
+            "name": 'test name',
+            "steps": [
+                {
+                    "id": 1,
+                    "placement": {
+                        "x": "x",
+                        "y": "y",
+                        "w": "with",
+                        "h": "height"
+                    },
+                    "name": "test12",
+                    "project_id": "test",
+                    "fields": [
+                        {
+                            "type": "type_filed",
+                            "data": {
+                                "identify": "type_filed"
+                            }
+                        }
+                    ]
+                }
+            ],
             "links": [
                 {
                     "id": 1,
-                    "start_id": 2,
-                    "end_id": 3,
+                    "start_id": 1,
+                    "end_id": 2,
                     "description": "string",
                     "color": "string"
                 }
@@ -86,40 +143,35 @@ class MainProjectViewSet(ModelViewSet):
             "last_change": "2023-09-21"
         })])
     def list(self, request, *args, **kwargs):
-        query = models.MainProject.objects.all().only(
-            'name', 'date_create', 'date_start', 'date_end', 'last_change', 'user__username').select_related('user')
-        data = serializers.ListMainKoSerializer(instance=query, many=True).data
-        return Response(data)
+        return super(MainProjectViewSet, self).list(request, *args, **kwargs)
 
-    @extend_schema(examples=[OpenApiExample(
-        "Post example",
-        value={
-            "name": "test"
-        }
-    )], description='successful post response {"status": "ok"}')
+    @extend_schema(examples=[OpenApiExample("Post example", )], description='successful post response {"status": "ok"}')
     def create(self, request, *args, **kwargs):
-        super(MainProjectViewSet, self).create(request, *args, **kwargs)
-        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+        return super(MainProjectViewSet, self).create(request, *args, **kwargs)
 
     @extend_schema(examples=[OpenApiExample(
         "put example",
         value={
-            "name": "test",
-            "structures": {
-                "id_steps": 'json metadata'
+            "name": "test name",
+            "placements": {
+                "id step": {
+                    "x": "x",
+                    "y": "y",
+                    "w": "with",
+                    "h": "height"
+                }
             }
-        },
+        }
     )], description='successful put response {"status": "ok"}')
     def update(self, request, *args, **kwargs):
-        super(MainProjectViewSet, self).update(request, *args, **kwargs)
         if not request.data.get('placements', False):
             return Response({'Error': 'there are no placements'}, status=status.HTTP_400_BAD_REQUEST)
         replace_a_place.delay(request.data.get('placements'))
-
-        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+        return super(MainProjectViewSet, self).update(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        return serializer.save(user=self.request.user)
+        # serializer.save(user=self.request.user)
+        serializer.save(user_id=1)
 
 
 class LinkStepViewSet(ModelViewSet):
@@ -147,11 +199,11 @@ class CreateTemplatesStep(generics.CreateAPIView):
     serializer_class = serializers.CreateTemplatesStepSerializer
 
     def perform_create(self, serializer):
-        serializer.save(user=User.objects.get(pk=1))
+        # serializer.save(user=self.request.user)
+        serializer.save(user_id=1)
 
     def create(self, request, *args, **kwargs):
-        super().create(request, *args, **kwargs)
-        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+        return super().create(request, *args, **kwargs)
 
 
 class ListSchema(generics.ListAPIView):
@@ -159,7 +211,7 @@ class ListSchema(generics.ListAPIView):
     serializer_class = serializers.CreateTemplatesStepSerializer
 
 
-class AddInfoInStage(APIView):
+class AddInfoInStep(APIView):
     """
     Заполнение информации в этапе
     """

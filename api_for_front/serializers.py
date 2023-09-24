@@ -27,7 +27,8 @@ class ViewStepSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep['fields'] = StepFieldsSerializer(instance=instance.fields.all(), many=True).data
+        rep['fields'] = [{'id': filed.id, 'component': filed.field['component'], 'data': filed.field['data']}
+                         for filed in instance.fields.all()]
         return rep
 
     class Meta:
@@ -39,6 +40,22 @@ class CreateStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
         fields = ['id', 'placement', 'name', 'project_id', 'templates_schema']
+
+    def update(self, instance, validated_data):
+        print(validated_data)
+        return models.Step.objects.all().first()
+
+
+class UpdateStepSerializer(serializers.ModelSerializer):
+    fields = serializers.JSONField()
+
+    class Meta:
+        model = models.Step
+        fields = ['id', 'name', 'fields']
+
+    def update(self, instance, validated_data):
+        print(validated_data)
+        return models.Step.objects.all().first()
 
 
 class StepFieldsSerializer(serializers.ModelSerializer):
@@ -73,3 +90,8 @@ class LinkStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.LinksStep
         fields = '__all__'
+
+
+class CustomResponseSerializer(serializers.Serializer):
+    def to_representation(self, instance):
+        return {"status": "ok"}

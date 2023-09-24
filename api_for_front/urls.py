@@ -11,6 +11,6 @@ router.register(r'links', views.LinkStepViewSet)
 urlpatterns = [
     path('create-step-template-schema/', views.CreateTemplatesStep.as_view()),
     path('list-schema/', views.ListSchema.as_view()),
-    path('update-step_info/', views.AddInfoInStage.as_view()),
+    path('update-step_info/', views.AddInfoInStep.as_view()),
     path('', include(router.urls)),
 ]
