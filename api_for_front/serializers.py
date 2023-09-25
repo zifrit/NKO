@@ -33,7 +33,7 @@ class ViewStepSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Step
-        fields = ['id', 'placement', 'name', 'project_id']
+        fields = ['id', 'placement', 'name', 'project_id', 'noda_front']
 
 
 class CreateStepSerializer(serializers.ModelSerializer):
@@ -89,9 +89,11 @@ class ListMainKoSerializer(serializers.ModelSerializer):
 class LinkStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.LinksStep
-        fields = '__all__'
+        fields = ['id', 'start_id', 'end_id', 'data']
 
 
 class CustomResponseSerializer(serializers.Serializer):
-    def to_representation(self, instance):
-        return {"status": "ok"}
+    new_replacement = serializers.JSONField()
+
+    # def to_representation(self, instance):
+    #     return {"status": "ok"}

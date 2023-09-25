@@ -23,7 +23,8 @@ class LinksStep(models.Model):
     """
     start_id = models.PositiveIntegerField(verbose_name='начало связи')
     end_id = models.PositiveIntegerField(verbose_name='конец связи')
-    description = models.CharField(max_length=255, verbose_name='описания')
+    description = models.CharField(max_length=255, verbose_name='описания', blank=True)
+    data = models.JSONField(verbose_name='id фронта')
     color = models.CharField(max_length=255, verbose_name='цвет', blank=True)
 
 
@@ -65,6 +66,7 @@ class Step(models.Model):
     placement = models.JSONField(verbose_name='Расположение')
     project_id = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
                                    related_name='steps')
+    noda_front = models.CharField(max_length=255, verbose_name='id ноды фронта')
     templates_schema = models.ForeignKey(to='StepTemplates', on_delete=models.SET_NULL, null=True,
                                          verbose_name='Схема для создания', related_name='steps')
     date_create = models.DateTimeField(verbose_name='Дата создание', auto_now_add=True)

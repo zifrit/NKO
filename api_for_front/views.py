@@ -1,7 +1,7 @@
 import json
 
 from django.contrib.auth.models import User
-from django.db.models import Prefetch
+from django.db.models import Prefetch, F
 
 # Create your views here.
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
@@ -13,7 +13,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 from . import models, serializers
-from .tasks import create_fields_for_step, replace_a_place
+from .tasks import create_fields_for_step, replace_a_place, set_data_step
 from django.db import transaction
 
 
@@ -23,7 +23,8 @@ class Steps(ModelViewSet):
     """
     serializer_class = serializers.ViewStepSerializer
     queryset = models.Step.objects. \
-        select_related('project_id').prefetch_related('fields').only('project_id__name', 'name', 'placement')
+        select_related('project_id').prefetch_related('fields').only('project_id__name', 'name', 'placement',
+                                                                     'noda_front')
 
     def perform_create(self, serializer):
         with transaction.atomic():
@@ -48,17 +49,35 @@ class Steps(ModelViewSet):
                 "y": "y",
                 "w": "with",
                 "h": "height"
-            }
+            },
+            "noda_front": 'some front id'
         }
-    )], description='successful put response {"status": "ok"}',
-        responses={
-            201: serializers.CustomResponseSerializer
-        })
+    )])
     def create(self, request, *args, **kwargs):
         return super(Steps, self).create(request, *args, **kwargs)
 
+    @extend_schema(examples=[OpenApiExample(
+        "put example",
+        value={
+            "fields": [
+                {
+                    "type": "type_filed",
+                    "data": {
+                        "identify": "type_filed"
+                    }
+                }
+            ]
+        }
+    )])
     def update(self, request, *args, **kwargs):
-        return super(Steps, self).update(request, *args, **kwargs)
+        if not request.data.get('fields', False):
+            return Response({'Error': 'there are no fields'}, status=status.HTTP_400_BAD_REQUEST)
+        for field in request.data.get('fields'):
+            models.StepFields.objects.filter(pk=field.pop('id')).update(field=field)
+
+        return Response(serializers.ViewStepSerializer(
+            instance=models.Step.objects.select_related('project_id').prefetch_related('fields').only(
+                'project_id__name', 'name', 'placement', 'noda_front').get(pk=kwargs['pk'])).data)
 
 
 class MainProjectViewSet(ModelViewSet):
@@ -162,7 +181,7 @@ class MainProjectViewSet(ModelViewSet):
                 }
             }
         }
-    )], description='successful put response {"status": "ok"}')
+    )])
     def update(self, request, *args, **kwargs):
         if not request.data.get('placements', False):
             return Response({'Error': 'there are no placements'}, status=status.HTTP_400_BAD_REQUEST)
@@ -191,9 +210,9 @@ class LinkStepViewSet(ModelViewSet):
         return Response({'status': 'ok'}, status=status.HTTP_200_OK)
 
 
-class CreateTemplatesStep(generics.CreateAPIView):
+class ListCreateTemplatesStep(generics.ListCreateAPIView):
     """
-    Создание шаблонов для создания этапов
+    Создание и получение списка шаблонов для создания этапов
     """
     queryset = models.StepTemplates.objects.select_related('user')
     serializer_class = serializers.CreateTemplatesStepSerializer
@@ -206,35 +225,30 @@ class CreateTemplatesStep(generics.CreateAPIView):
         return super().create(request, *args, **kwargs)
 
 
-class ListSchema(generics.ListAPIView):
+class DeleteSchema(generics.DestroyAPIView):
     queryset = models.StepTemplates.objects.all()
     serializer_class = serializers.CreateTemplatesStepSerializer
 
 
-class AddInfoInStep(APIView):
+class ReplacementPlaceStep(generics.UpdateAPIView):
     """
     Заполнение информации в этапе
     """
+    serializer_class = serializers.CustomResponseSerializer
+    queryset = models.Step.objects.all()
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(description='{"type_field":{"id_field":"change_info"}\n'
-                                             '{"type_field":{"id_field":"change_info"}'),
+    @extend_schema(examples=[OpenApiExample(
+        "put example",
+        value={
+            "new_placement": {
+                "x": 0.0,
+                "y": 0.0,
+            }
         }
-    )
-    def put(self, request):
-        data = request.data
-        if data.get('text', False):
-            for id_filed, value in data['text'].items():
-                models.FieldText.objects.filter(id=int(id_filed)).update(text=value)
-        if data.get('textarea', False):
-            for id_filed, value in data['textarea'].items():
-                models.FieldTextarea.objects.filter(id=int(id_filed)).update(textarea=value)
-        if data.get('date', False):
-            for id_filed, value in data['date'].items():
-                models.FieldDate.objects.filter(id=int(id_filed)).update(time=value)
-        # todo нужно проверить как сохраняется дата
-        # if update['textarea']:
-        #     for id_filed, value in update['textarea'].items():
-        #         models.FieldTextarea.objects.get(id=id_filed).update(textarea=value)
-        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+    )])
+    def put(self, request, *args, **kwargs):
+        if not request.data.get('new_replacement', False):
+            return Response({'Error': 'there are no new_placement'}, status=status.HTTP_400_BAD_REQUEST)
+        models.Step.objects.filter(pk=kwargs['pk']).update(
+            placement=request.data.get('new_replacement', F('placement')))
+        return Response({'status': 'ok'})
