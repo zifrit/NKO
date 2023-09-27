@@ -78,12 +78,20 @@ class Steps(ModelViewSet):
             return Response({'Error': 'there are no name'}, status=status.HTTP_400_BAD_REQUEST)
 
         for field in request.data.get('fields'):
-            models.StepFields.objects.filter(pk=field.pop('id')).update(field=field)
+            try:
+                models.StepFields.objects.filter(pk=field.pop('id')).update(field=field)
+            except KeyError:
+                models.StepFields.objects.create(field=field, step_id=kwargs['pk'])
         models.Step.objects.filter(pk=kwargs['pk']).update(name=request.data.get('name', F('name')))
 
         return Response(serializers.ViewStepSerializer(
             instance=models.Step.objects.select_related('project_id').prefetch_related('fields').only(
                 'project_id__name', 'name', 'placement', 'noda_front').get(pk=kwargs['pk'])).data)
+
+
+class DeleteStepFiled(generics.DestroyAPIView):
+    queryset = models.StepFields.objects.select_related('step').all()
+    serializer_class = serializers.StepFieldsSerializer
 
 
 class MainProjectViewSet(ModelViewSet):

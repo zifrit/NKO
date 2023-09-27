@@ -27,8 +27,10 @@ class ViewStepSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep['fields'] = [{'id': filed.id, 'component': filed.field['component'], 'data': filed.field['data']}
-                         for filed in instance.fields.all()]
+        rep['fields'] = []
+        for filed in instance.fields.all():
+            filed.field['id'] = filed.id
+            rep['fields'].append(filed.field)
         return rep
 
     class Meta:
