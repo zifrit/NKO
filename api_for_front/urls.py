@@ -10,6 +10,7 @@ router.register(r'links', views.LinkStepViewSet)
 
 urlpatterns = [
     path('templates/', views.ListCreateTemplatesStep.as_view()),
+    path('templates/<int:pk>/', views.UpdateSchema.as_view()),
     path('templates/delete/<int:pk>/', views.DeleteSchema.as_view()),
     path('replacement-step-place/<int:pk>/', views.ReplacementPlaceStep.as_view()),
     path('', include(router.urls)),

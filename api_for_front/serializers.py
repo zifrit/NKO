@@ -39,7 +39,7 @@ class ViewStepSerializer(serializers.ModelSerializer):
 class CreateStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
-        fields = ['id', 'placement', 'name', 'project_id', 'templates_schema']
+        fields = ['id', 'placement', 'name', 'project_id', 'templates_schema', 'noda_front']
 
     def update(self, instance, validated_data):
         print(validated_data)

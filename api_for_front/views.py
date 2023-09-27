@@ -59,8 +59,10 @@ class Steps(ModelViewSet):
     @extend_schema(examples=[OpenApiExample(
         "put example",
         value={
+            "name": 'step name',
             "fields": [
                 {
+                    "id": "id field",
                     "type": "type_filed",
                     "data": {
                         "identify": "type_filed"
@@ -72,8 +74,12 @@ class Steps(ModelViewSet):
     def update(self, request, *args, **kwargs):
         if not request.data.get('fields', False):
             return Response({'Error': 'there are no fields'}, status=status.HTTP_400_BAD_REQUEST)
+        if not request.data.get('name', False):
+            return Response({'Error': 'there are no name'}, status=status.HTTP_400_BAD_REQUEST)
+
         for field in request.data.get('fields'):
             models.StepFields.objects.filter(pk=field.pop('id')).update(field=field)
+        models.Step.objects.filter(pk=kwargs['pk']).update(name=request.data.get('name', F('name')))
 
         return Response(serializers.ViewStepSerializer(
             instance=models.Step.objects.select_related('project_id').prefetch_related('fields').only(
@@ -201,13 +207,23 @@ class LinkStepViewSet(ModelViewSet):
     queryset = models.LinksStep.objects.all()
 
     @extend_schema(
-        description='Returns 404 if start_id == end_id'
+        description='Returns 404 if start_id == end_id',
+        examples=[OpenApiExample(
+            "put example",
+            value={
+                "start_id": 'parents step id',
+                "end_id": 'child step ip',
+                "data": {
+                    "node_from_id": '',
+                    "node_to_id": ''
+                }
+            }
+        )]
     )
     def create(self, request, *args, **kwargs):
         if request.data['start_id'] == request.data['end_id']:
             return Response({'message': 'Начало и конец не могут быть одинаковыми'}, status=status.HTTP_400_BAD_REQUEST)
-        super().create(request, *args, **kwargs)
-        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+        return super().create(request, *args, **kwargs)
 
 
 class ListCreateTemplatesStep(generics.ListCreateAPIView):
@@ -230,6 +246,11 @@ class DeleteSchema(generics.DestroyAPIView):
     serializer_class = serializers.CreateTemplatesStepSerializer
 
 
+class UpdateSchema(generics.UpdateAPIView):
+    queryset = models.StepTemplates.objects.all()
+    serializer_class = serializers.CreateTemplatesStepSerializer
+
+
 class ReplacementPlaceStep(generics.UpdateAPIView):
     """
     Заполнение информации в этапе
@@ -240,7 +261,7 @@ class ReplacementPlaceStep(generics.UpdateAPIView):
     @extend_schema(examples=[OpenApiExample(
         "put example",
         value={
-            "new_placement": {
+            "new_replacement": {
                 "x": 0.0,
                 "y": 0.0,
             }
@@ -248,7 +269,7 @@ class ReplacementPlaceStep(generics.UpdateAPIView):
     )])
     def put(self, request, *args, **kwargs):
         if not request.data.get('new_replacement', False):
-            return Response({'Error': 'there are no new_placement'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Error': 'there are no new_replacement'}, status=status.HTTP_400_BAD_REQUEST)
         models.Step.objects.filter(pk=kwargs['pk']).update(
             placement=request.data.get('new_replacement', F('placement')))
         return Response({'status': 'ok'})
