@@ -1,6 +1,7 @@
 from django.db.models import Q
 from drf_spectacular.utils import OpenApiExample
 from rest_framework import serializers
+from django.contrib.auth.models import Group, Permission
 from . import models
 
 
@@ -97,5 +98,14 @@ class LinkStepSerializer(serializers.ModelSerializer):
 class CustomResponseSerializer(serializers.Serializer):
     new_replacement = serializers.JSONField()
 
-    # def to_representation(self, instance):
-    #     return {"status": "ok"}
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = '__all__'
+
+
+class PermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Permission
+        fields = '__all__'

@@ -1,19 +1,16 @@
-import json
-
-from django.contrib.auth.models import User
 from django.db.models import Prefetch, F
 
 # Create your views here.
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
-from rest_framework import generics, status, mixins
-from rest_framework.views import APIView
+from rest_framework import generics, status
+from django.contrib.auth.models import Group, Permission
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 from . import models, serializers
-from .tasks import create_fields_for_step, replace_a_place, set_data_step
+from .tasks import create_fields_for_step, replace_a_place
 from django.db import transaction
 
 
@@ -281,3 +278,19 @@ class ReplacementPlaceStep(generics.UpdateAPIView):
         models.Step.objects.filter(pk=kwargs['pk']).update(
             placement=request.data.get('new_replacement', F('placement')))
         return Response({'status': 'ok'})
+
+
+class GroupViewSet(ModelViewSet):
+    """
+    CRUD для групп
+    """
+    serializer_class = serializers.GroupSerializer
+    queryset = Group.objects.all()
+
+
+class PermissionViewSet(ReadOnlyModelViewSet):
+    """
+    list, retrieve permissions
+    """
+    serializer_class = serializers.PermissionSerializer
+    queryset = Permission.objects.all()
