@@ -12,3 +12,6 @@ class UserProfile(models.Model):
         verbose_name = 'UserProfile'
         verbose_name_plural = 'UserProfiles'
 
+    def get_full_name(self):
+        full_name = f'{self.user.get_full_name()} {self.middle_name}'
+        return full_name
