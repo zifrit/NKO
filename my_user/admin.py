@@ -10,6 +10,8 @@ class UserProfileInline(admin.TabularInline):
 
 
 class CustomUserAdmin(UserAdmin):
+    list_display = ('id', 'username', 'email', 'first_name', 'last_name', 'is_staff')
+    list_display_links = ('id', 'username')
     inlines = [UserProfileInline]
 
 
