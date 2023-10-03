@@ -18,8 +18,15 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
 
 class ViewUsersSerializer(serializers.ModelSerializer):
-    full_name = serializers.CharField(source='profile.get_full_name')
+    middle_name = serializers.CharField(source='profile.middle_name')
+    description = serializers.CharField(source='profile.description')
+
+    def to_representation(self, instance):
+        my_rep = super(ViewUsersSerializer, self).to_representation(instance)
+        my_rep['groups'] = [group.name for group in instance.groups.all()]
+        return my_rep
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'full_name']
+        fields = ['id', 'username', 'middle_name', 'first_name', 'last_name', 'description', 'groups']
+        read_only_fields = ['groups']

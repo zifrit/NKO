@@ -9,11 +9,14 @@ from . import serializers
 
 
 class UserModelViewSet(ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.select_related('profile').prefetch_related('groups'). \
+        only(
+        'username', 'first_name', 'last_name', 'profile__middle_name', 'profile__description', 'profile__job'
+    )
     serializer_class = serializers.CreateUserSerializer
 
     def get_serializer_class(self):
-        if self.request.method == 'GET':
+        if self.request.method == 'GET' or self.request.method == 'PUT':
             return serializers.ViewUsersSerializer
         return serializers.CreateUserSerializer
 
