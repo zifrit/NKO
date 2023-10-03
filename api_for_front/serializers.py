@@ -98,6 +98,7 @@ class CustomResponseSerializer(serializers.Serializer):
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
+        fields = ['id', 'name']
 
 
 class GetDepartmentSerializer(serializers.ModelSerializer):
