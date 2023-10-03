@@ -1,14 +1,15 @@
-from django.db.models import Prefetch, F
+from django.db.models import Prefetch, F, Count
 
 # Create your views here.
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from rest_framework import generics, status
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group, User
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
+from my_user.models import UserProfile
 from . import models, serializers
 from .tasks import create_fields_for_step, replace_a_place
 from django.db import transaction
@@ -282,9 +283,41 @@ class ReplacementPlaceStep(generics.UpdateAPIView):
         return Response({'status': 'ok'})
 
 
-class GroupViewSet(ModelViewSet):
+class CreateDepartmentView(generics.CreateAPIView):
     """
-    CRUD для групп
+    Созидание отделов
     """
     serializer_class = serializers.DepartmentSerializer
     queryset = Group.objects.all()
+
+
+class GetDepartmentView(generics.ListAPIView):
+    """
+    Список отделов с руководителями отделов
+    """
+    queryset = Group.objects.prefetch_related(
+        Prefetch('chief', queryset=UserProfile.objects.only('middle_name', 'chief_department_id', 'user_id')),
+        Prefetch('chief__user', queryset=User.objects.only('first_name', 'last_name'))). \
+        only(
+        'name', 'chief__user__first_name', 'chief__user__last_name', 'chief__middle_name'
+    ).annotate(number_of_stuff=Count('user'))
+    serializer_class = serializers.GetDepartmentSerializer
+
+
+class DepartmentUserView(generics.ListAPIView):
+    """
+    Список сотрудников отдела
+    """
+    serializer_class = serializers.DepartmentUserSerializer
+
+    def get_queryset(self):
+        return User.objects.select_related('profile'). \
+            only(
+            'username', 'first_name', 'last_name', 'profile__middle_name', 'profile__job'
+        ).filter(groups__in=[self.kwargs['pk']])
+
+    ...
+
+
+class AddToDepartmentUserView(generics.GenericAPIView):
+    ...

@@ -1,7 +1,6 @@
 from django.db.models import Q
-from drf_spectacular.utils import OpenApiExample
 from rest_framework import serializers
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group, User
 from . import models
 
 
@@ -49,10 +48,6 @@ class CreateStepSerializer(serializers.ModelSerializer):
         model = models.Step
         fields = ['id', 'placement', 'name', 'project_id', 'templates_schema', 'noda_front']
 
-    def update(self, instance, validated_data):
-        print(validated_data)
-        return models.Step.objects.all().first()
-
 
 class UpdateStepSerializer(serializers.ModelSerializer):
     fields = serializers.JSONField()
@@ -60,10 +55,6 @@ class UpdateStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
         fields = ['id', 'name', 'fields']
-
-    def update(self, instance, validated_data):
-        print(validated_data)
-        return models.Step.objects.all().first()
 
 
 class StepFieldsSerializer(serializers.ModelSerializer):
@@ -107,5 +98,25 @@ class CustomResponseSerializer(serializers.Serializer):
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ['name']
 
+
+class GetDepartmentSerializer(serializers.ModelSerializer):
+    chief = serializers.CharField(source='chief.get_full_name')
+
+    def to_representation(self, instance):
+        my_representation = super(GetDepartmentSerializer, self).to_representation(instance)
+        my_representation['number_of_stuff'] = instance.number_of_stuff
+        return my_representation
+
+    class Meta:
+        model = Group
+        fields = ['id', 'name', 'chief']
+
+
+class DepartmentUserSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source='profile.get_full_name')
+    job = serializers.CharField(source='profile.job')
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'full_name', 'job']
