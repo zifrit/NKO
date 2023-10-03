@@ -16,6 +16,11 @@ class CreateTemplatesStepSerializer(serializers.ModelSerializer):
         model = models.StepTemplates
         fields = ['id', 'name', 'schema', 'user']
 
+    def validate_schema(self, value):
+        if not value:
+            raise serializers.ValidationError("Schema cannot be empty")
+        return value
+
 
 class CreateTextareaFieldSerializer(serializers.ModelSerializer):
     class Meta:
