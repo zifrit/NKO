@@ -70,15 +70,17 @@ class Steps(ModelViewSet):
     )])
     def update(self, request, *args, **kwargs):
         if not request.data.get('fields', False):
-            return Response({'Error': 'there are no fields'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Error': 'There are no fields'}, status=status.HTTP_400_BAD_REQUEST)
         if not request.data.get('name', False):
-            return Response({'Error': 'there are no name'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Error': 'There are no name'}, status=status.HTTP_400_BAD_REQUEST)
 
         for field in request.data.get('fields'):
             try:
                 models.StepFields.objects.filter(pk=field.pop('id')).update(field=field)
             except KeyError:
                 models.StepFields.objects.create(field=field, step_id=kwargs['pk'])
+            except AttributeError:
+                return Response({'Error': 'Error'}, status=status.HTTP_400_BAD_REQUEST)
         models.Step.objects.filter(pk=kwargs['pk']).update(name=request.data.get('name', F('name')))
 
         return Response(serializers.ViewStepSerializer(
