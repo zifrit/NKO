@@ -286,13 +286,5 @@ class GroupViewSet(ModelViewSet):
     """
     CRUD для групп
     """
-    serializer_class = serializers.GroupSerializer
+    serializer_class = serializers.DepartmentSerializer
     queryset = Group.objects.all()
-
-
-class PermissionViewSet(ReadOnlyModelViewSet):
-    """
-    list, retrieve permissions
-    """
-    serializer_class = serializers.PermissionSerializer
-    queryset = Permission.objects.all()

@@ -8,7 +8,6 @@ router.register(r'project', views.MainProjectViewSet)
 router.register(r'steps', views.Steps)
 router.register(r'links', views.LinkStepViewSet)
 router.register(r'group', views.GroupViewSet)
-router.register(r'per', views.PermissionViewSet)
 
 urlpatterns = [
     path('step-filed/delete/<int:pk>/', views.DeleteStepFiled.as_view()),

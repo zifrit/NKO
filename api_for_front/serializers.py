@@ -99,13 +99,8 @@ class CustomResponseSerializer(serializers.Serializer):
     new_replacement = serializers.JSONField()
 
 
-class GroupSerializer(serializers.ModelSerializer):
+class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = '__all__'
+        fields = ['name']
 
-
-class PermissionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Permission
-        fields = '__all__'
