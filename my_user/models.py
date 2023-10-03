@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.db import models
 
 
@@ -12,6 +12,9 @@ class UserProfile(models.Model):
     )
     job = models.CharField(max_length=20, choices=JOBS, verbose_name='Должность', default='Frontend')
     description = models.TextField(blank=True, verbose_name='Доп.Инфо')
+    chief_department = models.OneToOneField(to=Group, on_delete=models.SET_NULL, null=True, blank=True,
+                                            verbose_name='Отдел которым руководит', related_name='chief')
+    is_chief = models.BooleanField(default=False, verbose_name='Шеф')
 
     class Meta:
         db_table = 'UserProfile'
