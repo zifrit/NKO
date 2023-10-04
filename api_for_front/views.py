@@ -1,6 +1,5 @@
 from django.db.models import Prefetch, F, Count
 
-# Create your views here.
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from rest_framework import generics, status
 from django.contrib.auth.models import Group, User

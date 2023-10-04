@@ -15,5 +15,11 @@ class CustomUserAdmin(UserAdmin):
     inlines = [UserProfileInline]
 
 
+@admin.register(models.UserProfile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'job', 'chief_department', 'is_chief')
+    list_display_links = ('id', 'user')
+
+
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
