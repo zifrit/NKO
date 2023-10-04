@@ -91,8 +91,8 @@ class LinkStepSerializer(serializers.ModelSerializer):
         fields = ['id', 'start_id', 'end_id', 'data']
 
 
-class CustomResponseSerializer(serializers.Serializer):
-    new_replacement = serializers.JSONField()
+class ExampleSerializer(serializers.Serializer):
+    example = serializers.CharField()
 
 
 class DepartmentSerializer(serializers.ModelSerializer):

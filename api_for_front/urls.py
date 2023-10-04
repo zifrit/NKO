@@ -13,7 +13,7 @@ urlpatterns = [
     path('departments/', views.GetDepartmentView.as_view()),
     path('departments/', views.CreateDepartmentView.as_view()),
     path('departments/<int:pk>/', views.DepartmentUserView.as_view()),
-    path('departments/add_users/', views.AddToDepartmentUserView.as_view()),
+    path('departments/add_or_remove_users/', views.AddToDepartmentUserView.as_view()),
     path('templates/', views.ListCreateTemplatesStep.as_view()),
     path('templates/<int:pk>/', views.UpdateSchema.as_view()),
     path('templates/delete/<int:pk>/', views.DeleteSchema.as_view()),

@@ -49,7 +49,8 @@ BASE_APPS = [
 ]
 
 PROJECT = [
-    'api_for_front.apps.ApiForFrontConfig'
+    'api_for_front.apps.ApiForFrontConfig',
+    'my_user.apps.MyUserConfig',
 ]
 
 LIBRARY_APP = [

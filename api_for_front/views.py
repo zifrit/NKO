@@ -263,7 +263,7 @@ class ReplacementPlaceStep(generics.UpdateAPIView):
     """
     Заполнение информации в этапе
     """
-    serializer_class = serializers.CustomResponseSerializer
+    serializer_class = serializers.ExampleSerializer
     queryset = models.Step.objects.all()
 
     @extend_schema(examples=[OpenApiExample(
@@ -320,4 +320,48 @@ class DepartmentUserView(generics.ListAPIView):
 
 
 class AddToDepartmentUserView(generics.GenericAPIView):
-    ...
+    """
+    Добавление или удаления сотрудника из отдела
+    """
+    serializer_class = serializers.ExampleSerializer
+
+    @extend_schema(examples=[OpenApiExample(
+        "put example",
+        value={
+            "id_department": 0,
+            "id_users": [],
+            "action": 'string'
+        }
+    )], responses={
+        200: OpenApiResponse(response=serializers.ExampleSerializer,
+                             examples=[OpenApiExample(
+                                 "put example",
+                                 value={
+                                     "status": True,
+                                 })])
+
+    })
+    def put(self, request):
+        errors = {}
+        data = request.data
+        if not data.get('action', False) or (not data['action'] and isinstance(data['action'], str)):
+            errors['action'] = 'There is no field action or field is empty'
+        if not data.get('id_users', False) or (not data['id_users'] and isinstance(data['id_users'], str)):
+            errors['id_users'] = 'There is no field id_users or field is empty'
+        if not data.get('id_department', False) or (not data['id_users'] and isinstance(data['id_department'], str)):
+            errors['id_department'] = 'There is no field id_department or equals zero'
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+        users = User.objects.filter(pk__in=data['id_users']).prefetch_related('groups').only('groups')
+        if data['action'] == 'add':
+            for user in users:
+                user.groups.add(data['id_department'])
+                return Response({"status": True})
+        elif data['action'] == 'remove':
+            for user in users:
+                user.groups.remove(data['id_department'])
+                return Response({"status": True})
+        else:
+            return Response({"Error": 'Not correct action'}, status=status.HTTP_400_BAD_REQUEST)
+
