@@ -126,4 +126,4 @@ class DepartmentUserSerializer(serializers.ModelSerializer):
 class SetWhoResponsibleSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
-        fields = ['users_look', 'users_responsible', 'users_inspecting']
+        fields = ['id', 'users_look', 'users_responsible', 'users_inspecting']

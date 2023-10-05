@@ -248,12 +248,10 @@ class ListCreateTemplatesStep(generics.ListCreateAPIView):
         return super().create(request, *args, **kwargs)
 
 
-class DeleteSchema(generics.DestroyAPIView):
-    queryset = models.StepTemplates.objects.all()
-    serializer_class = serializers.CreateTemplatesStepSerializer
-
-
-class UpdateSchema(generics.UpdateAPIView):
+class UpdateDeleteSchema(generics.DestroyAPIView, generics.UpdateAPIView):
+    """
+    Удаление и изменения схемы этапа
+    """
     queryset = models.StepTemplates.objects.all()
     serializer_class = serializers.CreateTemplatesStepSerializer
 
@@ -372,4 +370,3 @@ class SetGetWhoResponsibleStep(generics.UpdateAPIView, generics.RetrieveAPIView)
     queryset = models.Step.objects.select_related('users_responsible', 'users_inspecting'). \
         only('users_responsible__id', 'users_inspecting__id', 'users_look__id')
     serializer_class = serializers.SetWhoResponsibleSerializer
-
