@@ -121,3 +121,9 @@ class DepartmentUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'full_name', 'job']
+
+
+class SetWhoResponsibleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Step
+        fields = ['users_look', 'users_responsible', 'users_inspecting']

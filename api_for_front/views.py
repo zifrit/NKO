@@ -237,7 +237,7 @@ class ListCreateTemplatesStep(generics.ListCreateAPIView):
     """
     Создание и получение списка шаблонов для создания этапов
     """
-    queryset = models.StepTemplates.objects.select_related('user')
+    queryset = models.StepTemplates.objects.select_related('user').only('user__id', 'name', 'schema', 'id')
     serializer_class = serializers.CreateTemplatesStepSerializer
 
     def perform_create(self, serializer):
@@ -363,4 +363,13 @@ class AddToDepartmentUserView(generics.GenericAPIView):
                 return Response({"status": True})
         else:
             return Response({"Error": 'Not correct action'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SetGetWhoResponsibleStep(generics.UpdateAPIView, generics.RetrieveAPIView):
+    """
+    Назначение ответственного, наблюдателя и проверяющего для этапа
+    """
+    queryset = models.Step.objects.select_related('users_responsible', 'users_inspecting'). \
+        only('users_responsible__id', 'users_inspecting__id', 'users_look__id')
+    serializer_class = serializers.SetWhoResponsibleSerializer
 
