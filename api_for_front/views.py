@@ -233,9 +233,9 @@ class LinkStepViewSet(ModelViewSet):
         return super().create(request, *args, **kwargs)
 
 
-class ListCreateTemplatesStep(generics.ListCreateAPIView):
+class TemplatesStep(ModelViewSet):
     """
-    Создание и получение списка шаблонов для создания этапов
+    CRUD для схем этапов
     """
     queryset = models.StepTemplates.objects.select_related('user').only('user__id', 'name', 'schema', 'id')
     serializer_class = serializers.CreateTemplatesStepSerializer
@@ -246,14 +246,6 @@ class ListCreateTemplatesStep(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
-
-
-class UpdateDeleteSchema(generics.DestroyAPIView, generics.UpdateAPIView):
-    """
-    Удаление и изменения схемы этапа
-    """
-    queryset = models.StepTemplates.objects.all()
-    serializer_class = serializers.CreateTemplatesStepSerializer
 
 
 class ReplacementPlaceStep(generics.UpdateAPIView):
