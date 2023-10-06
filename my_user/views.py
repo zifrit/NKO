@@ -22,10 +22,11 @@ class UserModelViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         user = super(UserModelViewSet, self).create(request, *args, **kwargs)
-        print(user.data)
         return Response({'User': {
             'id': user.data['id'],
-            'first_name': user.data['first_name'],
-            'last_name': user.data['last_name'],
-            'middle_name': user.data['middle_name'],
+            'first_name': user.data.get('first_name', None),
+            'last_name': user.data.get('last_name', None),
+            'middle_name': user.data.get('middle_name', None),
+            'description': user.data.get('description', None),
+            'job': user.data.get('job', None),
         }})
