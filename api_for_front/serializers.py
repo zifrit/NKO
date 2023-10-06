@@ -85,6 +85,12 @@ class ListMainKoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class CreateMainKoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.MainProject
+        exclude = ['user', ]
+
+
 class LinkStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.LinksStep

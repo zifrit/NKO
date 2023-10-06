@@ -1,10 +1,10 @@
 from django.db.models import Prefetch, F, Count
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
-from rest_framework import generics, status
+from rest_framework import generics, status, mixins
 from django.contrib.auth.models import Group, User
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -93,7 +93,11 @@ class DeleteStepFiled(generics.DestroyAPIView):
     serializer_class = serializers.StepFieldsSerializer
 
 
-class MainProjectViewSet(ModelViewSet):
+class MainProjectViewSet(mixins.CreateModelMixin,
+                         mixins.RetrieveModelMixin,
+                         mixins.DestroyModelMixin,
+                         mixins.ListModelMixin,
+                         GenericViewSet):
     """
     CRUd для главной модели
     """
@@ -181,29 +185,14 @@ class MainProjectViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         return super(MainProjectViewSet, self).create(request, *args, **kwargs)
 
-    @extend_schema(examples=[OpenApiExample(
-        "put example",
-        value={
-            "name": "test name",
-            "placements": {
-                "id step": {
-                    "x": "x",
-                    "y": "y",
-                    "w": "with",
-                    "h": "height"
-                }
-            }
-        }
-    )])
-    def update(self, request, *args, **kwargs):
-        if not request.data.get('placements', False):
-            return Response({'Error': 'there are no placements'}, status=status.HTTP_400_BAD_REQUEST)
-        replace_a_place.delay(request.data.get('placements'))
-        return super(MainProjectViewSet, self).update(request, *args, **kwargs)
-
     def perform_create(self, serializer):
         # serializer.save(user=self.request.user)
         serializer.save(user_id=1)
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return serializers.CreateMainKoSerializer
+        return super(MainProjectViewSet, self).get_serializer_class()
 
 
 class LinkStepViewSet(ModelViewSet):
