@@ -294,8 +294,6 @@ class DepartmentUserView(generics.ListAPIView):
             'username', 'first_name', 'last_name', 'profile__middle_name', 'profile__job'
         ).filter(groups__in=[self.kwargs['pk']])
 
-    ...
-
 
 class AddToDepartmentUserView(generics.GenericAPIView):
     """
@@ -351,3 +349,11 @@ class SetGetWhoResponsibleStep(generics.UpdateAPIView, generics.RetrieveAPIView)
     queryset = models.Step.objects.select_related('users_responsible', 'users_inspecting'). \
         only('users_responsible__id', 'users_inspecting__id', 'users_look__id')
     serializer_class = serializers.SetWhoResponsibleSerializer
+
+
+class DeleteDepartmentView(generics.DestroyAPIView):
+    """
+    Удаление отдела
+    """
+    serializer_class = serializers.DepartmentSerializer
+    queryset = Group.objects.all()
