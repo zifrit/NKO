@@ -132,4 +132,11 @@ class DepartmentUserSerializer(serializers.ModelSerializer):
 class SetWhoResponsibleSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
-        fields = ['id', 'users_look', 'users_responsible', 'users_inspecting']
+        fields = ['responsible_persons_scheme']
+
+    def validate_responsible_persons_scheme(self, value: dict):
+        keys = ['users_editor', 'users_inspecting', 'users_look']
+        print(value)
+        if keys != sorted(list(value.keys())):
+            raise serializers.ValidationError("Incorrect scheme")
+        return value

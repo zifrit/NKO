@@ -72,8 +72,9 @@ class Step(models.Model):
     users_look = models.ManyToManyField(to=User, verbose_name='Те кто смотрят', blank=True, related_name='look')
     users_inspecting = models.ForeignKey(to=User, verbose_name='Тот кто проверяет', on_delete=models.SET_NULL,
                                          null=True, blank=True, related_name='inspecting')
-    users_responsible = models.ForeignKey(to=User, verbose_name='Тот кто ответственен', on_delete=models.SET_NULL,
-                                          null=True, blank=True, related_name='responsible')
+    users_editor = models.ForeignKey(to=User, verbose_name='Тот кто ответственен', on_delete=models.SET_NULL,
+                                     null=True, blank=True, related_name='editor')
+    responsible_persons_scheme = models.JSONField(verbose_name='Схема ответственных лиц', blank=True, default=dict)
     date_create = models.DateTimeField(verbose_name='Дата создание', auto_now_add=True)
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)

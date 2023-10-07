@@ -346,9 +346,39 @@ class SetGetWhoResponsibleStep(generics.UpdateAPIView, generics.RetrieveAPIView)
     """
     Назначение ответственного, наблюдателя и проверяющего для этапа
     """
-    queryset = models.Step.objects.select_related('users_responsible', 'users_inspecting'). \
-        only('users_responsible__id', 'users_inspecting__id', 'users_look__id')
+    queryset = models.Step.objects.only('responsible_persons_scheme')
     serializer_class = serializers.SetWhoResponsibleSerializer
+
+    @extend_schema(examples=[OpenApiExample(
+        "put example",
+        value={
+            "responsible_persons_scheme": {
+                "users_editor": 0,
+                "users_look": [],
+                "users_inspecting": 0
+            }
+        })])
+    def put(self, request, *args, **kwargs):
+        return super(SetGetWhoResponsibleStep, self).put(request, *args, **kwargs)
+
+    @extend_schema(examples=[OpenApiExample(
+        "put example",
+        value={}
+    )], responses={
+        200: OpenApiResponse(response=serializers.ExampleSerializer,
+                             examples=[OpenApiExample(
+                                 "put example",
+                                 value={
+                                     "responsible_persons_scheme": {
+                                         "users_editor": 0,
+                                         "users_look": [],
+                                         "users_inspecting": 0
+                                     }
+                                 })])
+
+    })
+    def get(self, request, *args, **kwargs):
+        return super(SetGetWhoResponsibleStep, self).get(request, *args, **kwargs)
 
 
 class DeleteDepartmentView(generics.DestroyAPIView):
