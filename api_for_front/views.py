@@ -387,3 +387,18 @@ class DeleteDepartmentView(generics.DestroyAPIView):
     """
     serializer_class = serializers.DepartmentSerializer
     queryset = Group.objects.all()
+
+
+class StepByStep(generics.GenericAPIView):
+
+    def post(self, request, pk):
+        id_nex_step = models.LinksStep.objects.only('end_id').get(start_id=pk).end_id
+        step = models.Step.objects. \
+            only('id', 'responsible_persons_scheme', 'users_editor__id', 'users_look__id', 'users_inspecting__id'). \
+            get(pk=id_nex_step)
+        responsible_persons_scheme = step.responsible_persons_scheme
+        step.users_look.add(*responsible_persons_scheme['users_look'])
+        step.users_editor_id = responsible_persons_scheme['users_editor']
+        step.users_inspecting_id = responsible_persons_scheme['users_inspecting']
+        step.save()
+        return Response({"status": True})
