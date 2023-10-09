@@ -2,6 +2,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from django.contrib.auth.models import Group, User
 from . import models
+from my_user.models import UserProfile
 
 
 class CreateStepSerializer(serializers.ModelSerializer):
@@ -111,7 +112,14 @@ class ExampleSerializer(serializers.Serializer):
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ['id', 'name']
+        fields = ['name', 'chief']
+
+    def create(self, validated_data):
+        group = super(DepartmentSerializer, self).create(validated_data)
+        validated_data['chief'].chief_department = group
+        validated_data['chief'].is_chief = True
+        validated_data['chief'].save()
+        return group
 
 
 class GetDepartmentSerializer(serializers.ModelSerializer):

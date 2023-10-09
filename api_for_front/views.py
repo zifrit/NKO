@@ -269,6 +269,14 @@ class CreateDepartmentView(generics.CreateAPIView):
     queryset = Group.objects.all()
 
 
+class DeleteDepartmentView(generics.DestroyAPIView):
+    """
+    Удаление отдела
+    """
+    serializer_class = serializers.DepartmentSerializer
+    queryset = Group.objects.all()
+
+
 class GetDepartmentView(generics.ListAPIView):
     """
     Список отделов с руководителями отделов
@@ -379,14 +387,6 @@ class SetGetWhoResponsibleStep(generics.UpdateAPIView, generics.RetrieveAPIView)
     })
     def get(self, request, *args, **kwargs):
         return super(SetGetWhoResponsibleStep, self).get(request, *args, **kwargs)
-
-
-class DeleteDepartmentView(generics.DestroyAPIView):
-    """
-    Удаление отдела
-    """
-    serializer_class = serializers.DepartmentSerializer
-    queryset = Group.objects.all()
 
 
 class StepByStep(generics.GenericAPIView):
