@@ -1,7 +1,9 @@
 from django.contrib.auth.models import User
 
 # Create your views here.
-from rest_framework import generics
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
+from rest_framework import generics, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -11,7 +13,8 @@ from . import serializers
 class UserModelViewSet(ModelViewSet):
     queryset = User.objects.select_related('profile').prefetch_related('groups'). \
         only(
-        'username', 'first_name', 'last_name', 'profile__middle_name', 'profile__description', 'profile__job'
+        'username', 'first_name', 'last_name', 'profile__middle_name', 'profile__description', 'profile__job',
+        'last_login'
     )
     serializer_class = serializers.CreateUserSerializer
 
@@ -22,11 +25,32 @@ class UserModelViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         user = super(UserModelViewSet, self).create(request, *args, **kwargs)
-        return Response({'User': {
-            'id': user.data['id'],
-            'first_name': user.data.get('first_name', None),
-            'last_name': user.data.get('last_name', None),
-            'middle_name': user.data.get('middle_name', None),
-            'description': user.data.get('description', None),
-            'job': user.data.get('job', None),
-        }})
+        return Response(user.data)
+
+    @extend_schema(examples=[OpenApiExample(
+        "Set password",
+        value={
+            "password1": "string",
+            "password2": "string"
+        }
+    )], responses={
+        200: OpenApiResponse(response=serializers.PasswordSerializer,
+                             examples=[OpenApiExample(
+                                 "confirm set password",
+                                 value={'status': 'password set'})]),
+        400: OpenApiResponse(response=serializers.PasswordSerializer,
+                             examples=[OpenApiExample(
+                                 "error set password",
+                                 value={'status': 'Passwords don\'t match'})]),
+    })
+    @action(detail=True, methods=['post'])
+    def set_password(self, request, pk=None):
+        user = self.get_object()
+        serializer = serializers.PasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user.set_password(serializer.validated_data['password1'])
+            user.save()
+            return Response({'status': 'password set'})
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
