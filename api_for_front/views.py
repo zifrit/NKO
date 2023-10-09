@@ -390,15 +390,29 @@ class DeleteDepartmentView(generics.DestroyAPIView):
 
 
 class StepByStep(generics.GenericAPIView):
-
+    @extend_schema(description='Нужно ввести id этапа "step" и он перейдет на следующий этапа')
     def post(self, request, pk):
+        old_step = models.Step.objects. \
+            only('id', 'responsible_persons_scheme', 'users_editor__id', 'users_look__id', 'users_inspecting__id'). \
+            get(pk=pk)
+        old_step.users_look.clear()
+        old_step.users_look.add(1)
+        old_step.users_editor_id = 1
+        old_step.users_inspecting_id = 1
+        old_step.save()
+
         id_nex_step = models.LinksStep.objects.only('end_id').get(start_id=pk).end_id
-        step = models.Step.objects. \
+        mext_step = models.Step.objects. \
             only('id', 'responsible_persons_scheme', 'users_editor__id', 'users_look__id', 'users_inspecting__id'). \
             get(pk=id_nex_step)
-        responsible_persons_scheme = step.responsible_persons_scheme
-        step.users_look.add(*responsible_persons_scheme['users_look'])
-        step.users_editor_id = responsible_persons_scheme['users_editor']
-        step.users_inspecting_id = responsible_persons_scheme['users_inspecting']
-        step.save()
+        responsible_persons_scheme = mext_step.responsible_persons_scheme
+        mext_step.users_look.add(*responsible_persons_scheme['users_look'])
+        mext_step.users_editor_id = responsible_persons_scheme['users_editor']
+        mext_step.users_inspecting_id = responsible_persons_scheme['users_inspecting']
+        mext_step.save()
         return Response({"status": True})
+
+
+class FilesView(generics.ListCreateAPIView):
+    queryset = models.StepFiles.objects.select_related('link_step')
+    serializer_class = serializers.SaveFileSerializer
