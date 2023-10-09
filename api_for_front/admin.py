@@ -32,6 +32,14 @@ class MainKO(admin.ModelAdmin):
     list_per_page = 30
 
 
+@admin.register(models.StepFiles)
+class MainKO(admin.ModelAdmin):
+    list_display = ['id', 'link_step', 'link_field']
+    list_display_links = ['id', 'link_step', 'link_field']
+    search_fields = ['step__name']
+    save_on_top = True
+
+
 @admin.register(models.LinksStep)
 class MainKO(admin.ModelAdmin):
     list_display = ['id', 'description', 'start_id', 'end_id', 'color']
@@ -52,8 +60,7 @@ class MainKO(admin.ModelAdmin):
 class BaseAdmin(admin.ModelAdmin):
     list_display = ['id', 'identify', 'name_field']
 
-
-admin.site.register(models.FieldText, BaseAdmin)
-admin.site.register(models.FieldTextarea, BaseAdmin)
-admin.site.register(models.FieldDate, BaseAdmin)
-admin.site.register(models.FieldStartFinishTime, BaseAdmin)
+# admin.site.register(models.FieldText, BaseAdmin)
+# admin.site.register(models.FieldTextarea, BaseAdmin)
+# admin.site.register(models.FieldDate, BaseAdmin)
+# admin.site.register(models.FieldStartFinishTime, BaseAdmin)

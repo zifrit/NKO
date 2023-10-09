@@ -36,6 +36,13 @@ class ViewStepSerializer(serializers.ModelSerializer):
         for filed in instance.fields.all():
             filed.field['id'] = filed.id
             rep['fields'].append(filed.field)
+        rep['files'] = []
+        for file in instance.step_files.all():
+            rep['files'].append({
+                "file_name": file.file_name,
+                "link_field": file.link_field_id,
+                "path_file": str(file.path_file),
+            })
         return rep
 
     class Meta:
@@ -140,3 +147,9 @@ class SetWhoResponsibleSerializer(serializers.ModelSerializer):
         if keys != sorted(list(value.keys())):
             raise serializers.ValidationError("Incorrect scheme")
         return value
+
+
+class SaveFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.StepFiles
+        fields = '__all__'

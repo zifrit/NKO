@@ -28,21 +28,21 @@ class LinksStep(models.Model):
     color = models.CharField(max_length=255, verbose_name='цвет', blank=True)
 
 
-class ProjectFiles(models.Model):
+class StepFiles(models.Model):
     """
-    Model files main projects
+    Model files step
     """
     file_name = models.CharField(verbose_name='Название файла', max_length=255)
-    path_file = models.FileField(upload_to='file/%Y/%m.%d/', verbose_name='Файл')
-    link_main_project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='связь с проектом',
-                                          related_name='project_files')
+    path_file = models.FileField(upload_to='file/%Y/%m-%d/', verbose_name='Файл')
     link_step = models.ForeignKey(to='Step', on_delete=models.CASCADE, verbose_name='связь с этапом',
                                   related_name='step_files')
+    link_field = models.ForeignKey(to='StepFields', on_delete=models.CASCADE, verbose_name='связь с полем',
+                                   related_name='field_file')
 
 
-class ProjectImages(models.Model):
+class StepImages(models.Model):
     """
-    Model images main projects
+    Model images step
     """
     file_name = models.CharField(verbose_name='Название файла', max_length=255)
     path_file = models.FileField(upload_to='images/%Y/%m.%d/', verbose_name='Файл')
