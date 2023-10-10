@@ -118,6 +118,8 @@ class DepartmentSerializer(serializers.ModelSerializer):
         group = super(DepartmentSerializer, self).create(validated_data)
         validated_data['chief'].chief_department = group
         validated_data['chief'].is_chief = True
+        validated_data['chief'].user.groups.add(group)
+        validated_data['chief'].user.save()
         validated_data['chief'].save()
         return group
 
