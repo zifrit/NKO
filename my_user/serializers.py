@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from rest_framework.response import Response
+
 from . import models
 
 
@@ -41,8 +43,20 @@ class ViewUsersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'middle_name', 'first_name', 'last_name', 'description', 'groups', 'job']
+        fields = ['id', 'username', 'middle_name', 'first_name', 'last_name', 'description', 'job']
         read_only_fields = ['groups', 'last_login']
+
+    def update(self, instance, validated_data):
+        profile = validated_data.get('profile')
+        instance.profile.middle_name = profile.get('middle_name')
+        instance.profile.description = profile.get('description')
+        instance.profile.job = profile.get('job')
+        instance.username = validated_data.get('username')
+        instance.first_name = validated_data.get('first_name')
+        instance.last_name = validated_data.get('last_name')
+        instance.save()
+        instance.profile.save()
+        return instance
 
 
 class PasswordSerializer(serializers.Serializer):
