@@ -314,7 +314,7 @@ class AddToDepartmentUserView(generics.GenericAPIView):
         value={
             "id_department": 0,
             "id_users": [],
-            "action": 'string'
+            "action": 'add or remove'
         }
     )], responses={
         200: OpenApiResponse(response=serializers.ExampleSerializer,
