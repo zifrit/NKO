@@ -138,10 +138,11 @@ class GetDepartmentSerializer(serializers.ModelSerializer):
 class DepartmentUserSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source='profile.get_full_name')
     job = serializers.CharField(source='profile.job')
+    is_chief = serializers.CharField(source='profile.is_chief')
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'full_name', 'job']
+        fields = ['id', 'username', 'full_name', 'job', 'is_chief']
 
 
 class SetWhoResponsibleSerializer(serializers.ModelSerializer):

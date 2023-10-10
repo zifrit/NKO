@@ -1,6 +1,6 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.contrib.auth.models import User, Group
 from . import models
 
 
@@ -15,6 +15,11 @@ class CustomUserAdmin(UserAdmin):
     inlines = [UserProfileInline]
 
 
+class CustomGroupAdmin(GroupAdmin):
+    list_display = ('id', 'name')
+    list_display_links = ('id', 'name')
+
+
 @admin.register(models.UserProfile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'job', 'chief_department', 'is_chief')
@@ -23,3 +28,5 @@ class ProfileAdmin(admin.ModelAdmin):
 
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
+admin.site.unregister(Group)
+admin.site.register(Group, CustomGroupAdmin)
