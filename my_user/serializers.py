@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework.response import Response
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from six import text_type
 
 from . import models
 
@@ -68,3 +70,22 @@ class PasswordSerializer(serializers.Serializer):
         if attrs['password1'] == attrs['password2']:
             return super(PasswordSerializer, self).validate(attrs)
         raise serializers.ValidationError("Passwords don't match")
+
+
+class MyTokenSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super(TokenObtainPairSerializer, self).validate(attrs)
+        refresh = self.get_token(self.user)
+        data['refresh'] = text_type(refresh)
+        roles = str(self.user.username)
+        if self.user.is_superuser:
+            new_token = refresh.access_token
+            data['access'] = text_type(new_token)
+            data['username'] = text_type(roles)
+            data['is_admin'] = True
+        else:
+            data['access'] = text_type(refresh.access_token)
+            data['username'] = text_type(roles)
+            data['is_admin'] = False
+
+        return data
