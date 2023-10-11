@@ -23,7 +23,8 @@ class Steps(ModelViewSet):
     queryset = models.Step.objects. \
         select_related('project_id').prefetch_related('fields', 'step_files').only('project_id__name', 'name',
                                                                                    'placement',
-                                                                                   'noda_front')
+                                                                                   'noda_front',
+                                                                                   'responsible_persons_scheme')
 
     def perform_create(self, serializer):
         with transaction.atomic():
