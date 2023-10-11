@@ -102,19 +102,19 @@ class CRUDProject(TestCase):
     def setUpClass(cls):
         super(CRUDProject, cls).setUpClass()
         cls.user = User.objects.create_user(username='test', password='test')
-        cls.today = str(datetime.date.today())
+        cls.today = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M'))
         cls.pro_1 = models.MainProject.objects.create(name='test1',
                                                       user=cls.user,
-                                                      date_start="2022-10-17",
-                                                      date_end="2022-10-18")
+                                                      date_start="2022-10-17 00:00",
+                                                      date_end="2022-10-18 00:00")
         cls.pro_2 = models.MainProject.objects.create(name='test2',
                                                       user=cls.user,
-                                                      date_start="2022-10-17",
-                                                      date_end="2022-10-18")
+                                                      date_start="2022-10-17 00:00",
+                                                      date_end="2022-10-18 00:00")
         cls.pro_3 = models.MainProject.objects.create(name='test3',
                                                       user=cls.user,
-                                                      date_start="2022-10-17",
-                                                      date_end="2022-10-18")
+                                                      date_start="2022-10-17 00:00",
+                                                      date_end="2022-10-18 00:00")
 
     @classmethod
     def tearDownClass(cls):
@@ -131,8 +131,8 @@ class CRUDProject(TestCase):
                 "user": "test",
                 "name": "test1",
                 "date_create": self.today,
-                "date_start": "2022-10-17",
-                "date_end": "2022-10-18",
+                "date_start": "2022-10-17 00:00",
+                "date_end": "2022-10-18 00:00",
                 "last_change": self.today,
             },
             {
@@ -140,8 +140,8 @@ class CRUDProject(TestCase):
                 "user": "test",
                 "name": "test2",
                 "date_create": self.today,
-                "date_start": "2022-10-17",
-                "date_end": "2022-10-18",
+                "date_start": "2022-10-17 00:00",
+                "date_end": "2022-10-18 00:00",
                 "last_change": self.today,
             },
             {
@@ -149,8 +149,8 @@ class CRUDProject(TestCase):
                 "user": "test",
                 "name": "test3",
                 "date_create": self.today,
-                "date_start": "2022-10-17",
-                "date_end": "2022-10-18",
+                "date_start": "2022-10-17 00:00",
+                "date_end": "2022-10-18 00:00",
                 "last_change": self.today,
             },
         ]
@@ -172,16 +172,16 @@ class CRUDProject(TestCase):
         response = self.client.post(reverse('mainproject-list'),
                                     {
                                         "name": "test4",
-                                        "date_start": "2022-10-17",
-                                        "date_end": "2022-10-18",
+                                        "date_start": "2022-10-17 00:00",
+                                        "date_end": "2022-10-18 00:00",
                                     }
                                     )
         expected_data = {
             "id": 4,
             "name": "test4",
             "date_create": self.today,
-            "date_start": "2022-10-17",
-            "date_end": "2022-10-18",
+            "date_start": "2022-10-17 00:00",
+            "date_end": "2022-10-18 00:00",
             "last_change": self.today,
         }
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
