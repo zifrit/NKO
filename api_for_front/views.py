@@ -89,6 +89,18 @@ class Steps(ModelViewSet):
             instance=models.Step.objects.select_related('project_id').prefetch_related('fields').only(
                 'project_id__name', 'name', 'placement', 'noda_front').get(pk=kwargs['pk'])).data)
 
+    @extend_schema(examples=[OpenApiExample(
+        "get example",
+        value={
+            'id_step': 'name step'
+        }
+    )])
+    @action(methods=['get'], detail=False)
+    def user_steps(self, request):
+        user = request.user
+        steps = models.Step.objects.filter(users_editor=user).only('name', 'id')
+        return Response({step.id: step.name for step in steps})
+
 
 class DeleteStepFiled(generics.DestroyAPIView):
     queryset = models.StepFields.objects.select_related('step').all()
