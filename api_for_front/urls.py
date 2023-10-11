@@ -19,7 +19,7 @@ urlpatterns = [
          name='add_or_remove_users_in_departments'),
     path('replacement-step-place/<int:pk>/', views.ReplacementPlaceStep.as_view(), name='replacement_step_place'),
     path('responsible-step-users/<int:pk>/', views.SetGetWhoResponsibleStep.as_view(), name='responsible_step_users'),
-    path('step-by-step/<int:pk>/', views.StepByStep.as_view(), name='step-by-step'),
-    path('step-files/', views.FilesView.as_view(), name='step-files'),
+    path('step-by-step/<int:pk>/', views.StepByStep.as_view(), name='step_by_step'),
+    path('step-files/', views.FilesView.as_view(), name='step_files'),
     path('', include(router.urls)),
 ]

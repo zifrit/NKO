@@ -3,6 +3,7 @@ from django.db.models import Prefetch, F, Count
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from rest_framework import generics, status, mixins
 from django.contrib.auth.models import Group, User
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -20,8 +21,9 @@ class Steps(ModelViewSet):
     """
     serializer_class = serializers.ViewStepSerializer
     queryset = models.Step.objects. \
-        select_related('project_id').prefetch_related('fields').only('project_id__name', 'name', 'placement',
-                                                                     'noda_front')
+        select_related('project_id').prefetch_related('fields', 'step_files').only('project_id__name', 'name',
+                                                                                   'placement',
+                                                                                   'noda_front')
 
     def perform_create(self, serializer):
         with transaction.atomic():
@@ -394,25 +396,32 @@ class SetGetWhoResponsibleStep(generics.UpdateAPIView, generics.RetrieveAPIView)
 class StepByStep(generics.GenericAPIView):
     @extend_schema(description='Нужно ввести id этапа "step" и он перейдет на следующий этапа')
     def post(self, request, pk):
-        old_step = models.Step.objects. \
-            only('id', 'responsible_persons_scheme', 'users_editor__id', 'users_look__id', 'users_inspecting__id'). \
-            get(pk=pk)
-        old_step.users_look.clear()
-        old_step.users_look.add(1)
-        old_step.users_editor_id = 1
-        old_step.users_inspecting_id = 1
-        old_step.save()
+        with transaction.atomic():
+            if not models.LinksStep.objects.filter(start_id=pk).exists():
+                return Response({"Error": 'step has no any links'}, status=status.HTTP_400_BAD_REQUEST)
+            id_nex_step = models.LinksStep.objects.only('end_id').get(start_id=pk).end_id
+            old_step = models.Step.objects. \
+                only('id', 'responsible_persons_scheme', 'users_editor__id', 'users_look__id', 'users_inspecting__id'). \
+                get(pk=pk)
+            next_step = models.Step.objects. \
+                only('id', 'responsible_persons_scheme', 'users_editor__id', 'users_look__id', 'users_inspecting__id'). \
+                get(pk=id_nex_step)
+            responsible_persons_scheme = next_step.responsible_persons_scheme
+            if not responsible_persons_scheme:
+                return Response({"Error": 'nex step has no responsible persons scheme'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
-        id_nex_step = models.LinksStep.objects.only('end_id').get(start_id=pk).end_id
-        mext_step = models.Step.objects. \
-            only('id', 'responsible_persons_scheme', 'users_editor__id', 'users_look__id', 'users_inspecting__id'). \
-            get(pk=id_nex_step)
-        responsible_persons_scheme = mext_step.responsible_persons_scheme
-        mext_step.users_look.add(*responsible_persons_scheme['users_look'])
-        mext_step.users_editor_id = responsible_persons_scheme['users_editor']
-        mext_step.users_inspecting_id = responsible_persons_scheme['users_inspecting']
-        mext_step.save()
-        return Response({"status": True})
+            old_step.users_look.clear()
+            old_step.users_look.add(1)
+            old_step.users_editor_id = 1
+            old_step.users_inspecting_id = 1
+            old_step.save()
+
+            next_step.users_look.add(*responsible_persons_scheme['users_look'])
+            next_step.users_editor_id = responsible_persons_scheme['users_editor']
+            next_step.users_inspecting_id = responsible_persons_scheme['users_inspecting']
+            next_step.save()
+        return Response({"Status": True}, status=status.HTTP_200_OK)
 
 
 class FilesView(generics.ListCreateAPIView):
