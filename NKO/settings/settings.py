@@ -77,6 +77,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'whitenoise.middleware.WhiteNoiseMiddleware',  # когда буду запускать отдельный контейнер
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+    'NKO.Middleware.logger.TestMiddleware',
 ]
 
 ROOT_URLCONF = 'NKO.urls'
@@ -132,7 +133,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -166,7 +167,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
-    'DATETIME_FORMAT': '%Y-%m-%d',  # изменение формы отображение даты ListCommentsSerializer
+    'DATETIME_FORMAT': '%Y-%m-%d %H:%M',  # изменение формы отображение даты ListCommentsSerializer
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     # 'PAGE_SIZE': 2,
     'DEFAULT_FILTER_BACKENDS': [
