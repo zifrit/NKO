@@ -300,10 +300,11 @@ class GetDepartmentView(generics.ListAPIView):
     """
     queryset = Group.objects.prefetch_related(
         Prefetch('chief', queryset=UserProfile.objects.only('middle_name', 'chief_department_id', 'user_id')),
-        Prefetch('chief__user', queryset=User.objects.only('first_name', 'last_name'))). \
+        Prefetch('chief__user', queryset=User.objects.only('first_name', 'last_name')),
+        Prefetch('user_set', queryset=User.objects.only('id', 'username'))). \
         only(
-        'name', 'chief__user__first_name', 'chief__user__last_name', 'chief__middle_name'
-    ).annotate(number_of_stuff=Count('user'))
+        'name', 'chief__user__first_name', 'chief__user__last_name', 'chief__middle_name',
+    ).annotate(count_users=Count('user'))
     serializer_class = serializers.GetDepartmentSerializer
 
 

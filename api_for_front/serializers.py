@@ -129,7 +129,8 @@ class GetDepartmentSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         my_representation = super(GetDepartmentSerializer, self).to_representation(instance)
-        my_representation['number_of_stuff'] = instance.number_of_stuff
+        my_representation['count_users'] = instance.count_users
+        my_representation['users'] = [{'id': user.id, 'username': user.username} for user in instance.user_set.all()]
         return my_representation
 
     class Meta:
