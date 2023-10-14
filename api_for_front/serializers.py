@@ -88,6 +88,12 @@ class RetrieveMainKoSerializer(serializers.ModelSerializer):
 class ListMainKoSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source='user.username')
 
+    def to_representation(self, instance):
+        my_representation = super().to_representation(instance)
+        my_representation['count_step'] = instance.count_step
+        my_representation['finished_steps'] = instance.finished_steps
+        return my_representation
+
     class Meta:
         model = models.MainProject
         fields = '__all__'
@@ -126,6 +132,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
 class GetDepartmentSerializer(serializers.ModelSerializer):
     chief = serializers.CharField(source='chief.get_full_name')
+    chief_id = serializers.CharField(source='chief.id')
 
     def to_representation(self, instance):
         my_representation = super(GetDepartmentSerializer, self).to_representation(instance)
@@ -135,7 +142,7 @@ class GetDepartmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ['id', 'name', 'chief']
+        fields = ['id', 'name', 'chief', 'chief_id']
 
 
 class DepartmentUserSerializer(serializers.ModelSerializer):

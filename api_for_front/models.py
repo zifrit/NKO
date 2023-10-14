@@ -62,6 +62,7 @@ class Step(models.Model):
     """
     Model step. show information about step, and what fields he has
     """
+    # todo добавить поля активные/неактивный завершенные/незавершенный
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
     placement = models.JSONField(verbose_name='Расположение')
     project_id = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',

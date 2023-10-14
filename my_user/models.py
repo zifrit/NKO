@@ -24,3 +24,5 @@ class UserProfile(models.Model):
     def get_full_name(self):
         full_name = f'{self.user.get_full_name()} {self.middle_name}'
         return full_name
+
+# todo таблица сообщения пользователя

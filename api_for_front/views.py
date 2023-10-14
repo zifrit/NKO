@@ -1,4 +1,4 @@
-from django.db.models import Prefetch, F, Count
+from django.db.models import Prefetch, F, Count, Case, Q
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from rest_framework import generics, status, mixins
@@ -117,8 +117,10 @@ class MainProjectViewSet(mixins.CreateModelMixin,
     CRUd для главной модели
     """
     serializer_class = serializers.ListMainKoSerializer
+    # todo изменить фильтр аннотации на количество завершенных этапов
     queryset = models.MainProject.objects.all().only(
-        'name', 'date_create', 'date_start', 'date_end', 'last_change', 'user__username').select_related('user')
+        'name', 'date_create', 'date_start', 'date_end', 'last_change', 'user__username').select_related('user'). \
+        annotate(count_step=Count('steps'), finished_steps=Count('steps', filter=Q(steps__name__startswith='t')))
     filter_backends = [
         SearchFilter,
         DjangoFilterBackend,
@@ -299,7 +301,7 @@ class GetDepartmentView(generics.ListAPIView):
     Список отделов с руководителями отделов
     """
     queryset = Group.objects.prefetch_related(
-        Prefetch('chief', queryset=UserProfile.objects.only('middle_name', 'chief_department_id', 'user_id')),
+        Prefetch('chief', queryset=UserProfile.objects.only('middle_name', 'chief_department_id', 'user_id', 'id')),
         Prefetch('chief__user', queryset=User.objects.only('first_name', 'last_name')),
         Prefetch('user_set', queryset=User.objects.only('id', 'username'))). \
         only(
@@ -407,6 +409,7 @@ class SetGetWhoResponsibleStep(generics.UpdateAPIView, generics.RetrieveAPIView)
         return super(SetGetWhoResponsibleStep, self).get(request, *args, **kwargs)
 
 
+# todo перенести на воркер
 class StepByStep(generics.GenericAPIView):
     @extend_schema(description='Нужно ввести id этапа "step" и он перейдет на следующий этапа')
     def post(self, request, pk):
