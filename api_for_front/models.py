@@ -65,7 +65,7 @@ class Step(models.Model):
     """
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
     placement = models.JSONField(verbose_name='Расположение')
-    project_id = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
+    project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
                                    related_name='steps')
     noda_front = models.CharField(max_length=255, verbose_name='id ноды фронта')
     templates_schema = models.ForeignKey(to='StepTemplates', on_delete=models.SET_NULL, null=True,

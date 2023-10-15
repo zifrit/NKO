@@ -203,6 +203,21 @@ class MainProjectViewSet(mixins.CreateModelMixin,
     def create(self, request, *args, **kwargs):
         return super(MainProjectViewSet, self).create(request, *args, **kwargs)
 
+    @action(detail=True, methods=['get'])
+    def finished_steps(self, request, pk=None):
+        steps = models.Step.objects.filter(project_id=pk, finished=True).prefetch_related(
+            Prefetch('fields', queryset=models.StepFields.objects.all()),
+            Prefetch('step_files', queryset=models.StepFiles.objects.only('file_name', 'path_file')),
+        ).only('name')
+        data = {}
+        for step in steps:
+            data[step.name] = {'fields': [], 'files': []}
+            for field in step.fields.all():
+                data[step.name]['fields'].append(field.field)
+            for file in step.step_files.all():
+                data[step.name]['files'].append({'name': file.file_name, 'path': str(file.path_file)})
+        return Response(data)
+
     def perform_create(self, serializer):
         # todo вернуть на сессионого юзера
         # serializer.save(user=self.request.user)

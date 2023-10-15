@@ -8,7 +8,7 @@ from my_user.models import UserProfile
 class CreateStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
-        fields = ['name', 'project_id', 'templates_schema']
+        fields = ['name', 'project', 'templates_schema']
 
 
 class CreateTemplatesStepSerializer(serializers.ModelSerializer):
@@ -29,7 +29,7 @@ class CreateTextareaFieldSerializer(serializers.ModelSerializer):
 
 
 class ViewStepSerializer(serializers.ModelSerializer):
-    project_id = serializers.CharField(source='project_id.name')
+    project = serializers.CharField(source='project.name')
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
@@ -48,13 +48,13 @@ class ViewStepSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Step
-        fields = ['id', 'placement', 'name', 'project_id', 'noda_front']
+        fields = ['id', 'placement', 'name', 'project', 'noda_front']
 
 
 class CreateStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
-        fields = ['id', 'placement', 'name', 'project_id', 'templates_schema', 'noda_front']
+        fields = ['id', 'placement', 'name', 'project', 'templates_schema', 'noda_front']
 
 
 class UpdateStepSerializer(serializers.ModelSerializer):
