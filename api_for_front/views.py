@@ -177,8 +177,10 @@ class MainProjectViewSet(mixins.CreateModelMixin,
     )])
     def retrieve(self, request, *args, **kwargs):
         query = models.MainProject.objects.prefetch_related(
-            Prefetch('steps', queryset=models.Step.objects.all().only('id', 'placement', 'name', 'project_id__id')),
+            Prefetch('steps', queryset=models.Step.objects.all().only('id', 'placement', 'name', 'project_id__id',
+                                                                      'noda_front')),
             Prefetch('steps__fields', queryset=models.StepFields.objects.all()),
+            Prefetch('steps__step_files', queryset=models.StepFiles.objects.all()),
         ).only('id', 'name').get(pk=kwargs['pk'])
         data = serializers.RetrieveMainKoSerializer(instance=query).data
         return Response(data)
@@ -440,6 +442,13 @@ class StepByStep(generics.GenericAPIView):
         return Response({"Status": True}, status=status.HTTP_200_OK)
 
 
-class FilesView(generics.ListCreateAPIView):
+class FilesView(generics.ListAPIView):
+    serializer_class = serializers.SaveFileSerializer
+
+    def get_queryset(self):
+        return models.StepFiles.objects.filter(link_step_id=self.kwargs['pk'])
+
+
+class FilesCreate(generics.CreateAPIView):
     queryset = models.StepFiles.objects.select_related('link_step')
     serializer_class = serializers.SaveFileSerializer

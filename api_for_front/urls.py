@@ -20,6 +20,7 @@ urlpatterns = [
     path('replacement-step-place/<int:pk>/', views.ReplacementPlaceStep.as_view(), name='replacement_step_place'),
     path('responsible-step-users/<int:pk>/', views.SetGetWhoResponsibleStep.as_view(), name='responsible_step_users'),
     path('step-by-step/<int:pk>/', views.StepByStep.as_view(), name='step_by_step'),
-    path('step-files/', views.FilesView.as_view(), name='step_files'),
+    path('step-files/<int:pk>/', views.FilesView.as_view(), name='step_files'),
+    path('step-files/', views.FilesCreate.as_view(), name='step_files'),
     path('', include(router.urls)),
 ]
