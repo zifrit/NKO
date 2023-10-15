@@ -1,4 +1,4 @@
-from django.db.models import Prefetch, F, Count, Case, Q, When, CharField
+from django.db.models import Prefetch, F, Count, Q
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from rest_framework import generics, status, mixins
@@ -21,10 +21,10 @@ class Steps(ModelViewSet):
     """
     serializer_class = serializers.ViewStepSerializer
     queryset = models.Step.objects. \
-        select_related('project_id').prefetch_related('fields', 'step_files').only('project_id__name', 'name',
-                                                                                   'placement',
-                                                                                   'noda_front',
-                                                                                   'responsible_persons_scheme')
+        select_related('project').prefetch_related('fields', 'step_files').only('project__name', 'name',
+                                                                                'placement',
+                                                                                'noda_front',
+                                                                                'responsible_persons_scheme')
 
     def perform_create(self, serializer):
         with transaction.atomic():
@@ -43,7 +43,7 @@ class Steps(ModelViewSet):
         value={
             "templates_schema": 14,
             "name": "room step",
-            "project_id": 1,
+            "project": 1,
             "placement": {
                 "x": "x",
                 "y": "y",
@@ -87,8 +87,8 @@ class Steps(ModelViewSet):
         models.Step.objects.filter(pk=kwargs['pk']).update(name=request.data.get('name', F('name')))
 
         return Response(serializers.ViewStepSerializer(
-            instance=models.Step.objects.select_related('project_id').prefetch_related('fields').only(
-                'project_id__name', 'name', 'placement', 'noda_front').get(pk=kwargs['pk'])).data)
+            instance=models.Step.objects.select_related('project').prefetch_related('fields').only(
+                'project__name', 'name', 'placement', 'noda_front').get(pk=kwargs['pk'])).data)
 
     @extend_schema(examples=[OpenApiExample(
         "get example",
@@ -153,7 +153,7 @@ class MainProjectViewSet(mixins.CreateModelMixin,
                         "h": "height"
                     },
                     "name": "test12",
-                    "project_id": "test",
+                    "project": "test",
                     "fields": [
                         {
                             "type": "type_filed",
@@ -177,7 +177,7 @@ class MainProjectViewSet(mixins.CreateModelMixin,
     )])
     def retrieve(self, request, *args, **kwargs):
         query = models.MainProject.objects.prefetch_related(
-            Prefetch('steps', queryset=models.Step.objects.all().only('id', 'placement', 'name', 'project_id__id',
+            Prefetch('steps', queryset=models.Step.objects.all().only('id', 'placement', 'name', 'project__id',
                                                                       'noda_front')),
             Prefetch('steps__fields', queryset=models.StepFields.objects.all()),
             Prefetch('steps__step_files', queryset=models.StepFiles.objects.all()),
