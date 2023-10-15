@@ -1,4 +1,4 @@
-from django.db.models import Prefetch, F, Count, Case, Q
+from django.db.models import Prefetch, F, Count, Case, Q, When, CharField
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from rest_framework import generics, status, mixins
@@ -117,10 +117,9 @@ class MainProjectViewSet(mixins.CreateModelMixin,
     CRUd для главной модели
     """
     serializer_class = serializers.ListMainKoSerializer
-    # todo изменить фильтр аннотации на количество завершенных этапов
     queryset = models.MainProject.objects.all().only(
         'name', 'date_create', 'date_start', 'date_end', 'last_change', 'user__username').select_related('user'). \
-        annotate(count_step=Count('steps'), finished_steps=Count('steps', filter=Q(steps__name__startswith='t')))
+        annotate(count_step=Count('steps'), finished_steps=Count('steps', filter=Q(steps__finished=True)))
     filter_backends = [
         SearchFilter,
         DjangoFilterBackend,

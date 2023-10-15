@@ -12,6 +12,7 @@ class MainProject(models.Model):
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)
     last_change = models.DateTimeField(auto_now=True, verbose_name='последние изменения')
+    active = models.BooleanField(verbose_name='В процессе', default=False)
 
     def __str__(self):
         return f'{self.user.username} {self.name}'
@@ -82,6 +83,8 @@ class Step(models.Model):
         "users_inspecting": 0
     }
     ))
+    finished = models.BooleanField(verbose_name='Завершенность', default=False)
+    active = models.BooleanField(verbose_name='В процессе', default=False)
     date_create = models.DateTimeField(verbose_name='Дата создание', auto_now_add=True)
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)
