@@ -49,7 +49,8 @@ class ViewStepSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Step
-        fields = ['id', 'name', 'project', 'project_id', 'noda_front', 'placement', 'responsible_persons_scheme']
+        fields = ['id', 'name', 'project', 'project_id', 'noda_front', 'beginner_in_project', 'placement',
+                  'responsible_persons_scheme']
 
 
 class CreateStepSerializer(serializers.ModelSerializer):
