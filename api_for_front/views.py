@@ -172,7 +172,14 @@ class MainProjectViewSet(mixins.CreateModelMixin,
                     "description": "string",
                     "color": "string"
                 }
-            ]
+            ],
+            "files": [
+                {
+                    "file_name": "string",
+                    "link_field": 0,
+                    "path_file": 'sting',
+                }
+            ],
         },
     )])
     def retrieve(self, request, *args, **kwargs):
@@ -292,6 +299,121 @@ class ReplacementPlaceStep(generics.UpdateAPIView):
         models.Step.objects.filter(pk=kwargs['pk']).update(
             placement=request.data.get('new_replacement', F('placement')))
         return Response({'status': 'ok'})
+
+
+class Departments(mixins.CreateModelMixin,
+                  mixins.DestroyModelMixin,
+                  mixins.ListModelMixin,
+                  GenericViewSet):
+    serializer_class = serializers.DepartmentSerializer
+    queryset = Group.objects.prefetch_related('chief', 'chief__user').all()
+
+    @extend_schema(examples=[OpenApiExample(
+        "get list example",
+        value={
+            "id": 0,
+            "name": "name department",
+            "chief": "chief name",
+            "chief_id": "chief identify",
+            "count_users": 0,
+            "users": []
+        }
+    )])
+    def list(self, request, *args, **kwargs):
+        self.queryset = Group.objects.prefetch_related(
+            Prefetch('chief', queryset=UserProfile.objects.only('middle_name', 'chief_department_id', 'user_id', 'id')),
+            Prefetch('chief__user', queryset=User.objects.only('first_name', 'last_name')),
+            Prefetch('user_set', queryset=User.objects.only('id', 'username'))). \
+            only(
+            'name', 'chief__user__first_name', 'chief__user__last_name', 'chief__middle_name',
+        ).annotate(count_users=Count('user'))
+        self.serializer_class = serializers.GetDepartmentSerializer
+        return super(Departments, self).list(request, *args, **kwargs)
+
+    @extend_schema(description='Пользователь может руководить только одним отделом')
+    def create(self, request, *args, **kwargs):
+        return super(Departments, self).create(request, *args, **kwargs)
+
+    @extend_schema(examples=[OpenApiExample(
+        "get list",
+        value=[{
+            "id": 0,
+            "username": "user1",
+            "full_name": "Игорь Иванов Павлович",
+            "job": "Frontend",
+            "is_chief": 0
+        }]
+    )])
+    @action(detail=True, methods=['get'])
+    def users(self, request, pk=None):
+        users = User.objects.select_related('profile'). \
+            only(
+            'username', 'first_name', 'last_name', 'profile__middle_name', 'profile__job', 'profile__is_chief'
+        ).filter(groups__in=[pk])
+        data = serializers.DepartmentUserSerializer(instance=users, many=True).data
+        return Response(data)
+
+    @extend_schema(examples=[OpenApiExample(
+        "put example",
+        value={
+            "id_department": 0,
+            "id_users": [],
+        }
+    )], responses={
+        200: OpenApiResponse(response=serializers.ExampleSerializer,
+                             examples=[OpenApiExample(
+                                 "response",
+                                 value={
+                                     "status": True,
+                                 })])
+
+    })
+    @action(detail=False, methods=['put'])
+    def add_users(self, request, pk=None):
+        errors = {}
+        data = request.data
+        if not data.get('id_users', False) or (not data['id_users'] and isinstance(data['id_users'], str)):
+            errors['id_users'] = 'There is no field id_users or field is empty'
+        if not data.get('id_department', False) or (not data['id_users'] and isinstance(data['id_department'], str)):
+            errors['id_department'] = 'There is no field id_department or equals zero'
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+        users = User.objects.filter(pk__in=data['id_users']).prefetch_related('groups').only('groups')
+        for user in users:
+            user.groups.add(data['id_department'])
+            return Response({"status": True})
+
+    @extend_schema(examples=[OpenApiExample(
+        "put example",
+        value={
+            "id_department": 0,
+            "id_users": [],
+        }
+    )], responses={
+        200: OpenApiResponse(response=serializers.ExampleSerializer,
+                             examples=[OpenApiExample(
+                                 "response",
+                                 value={
+                                     "status": True,
+                                 })])
+
+    })
+    @action(detail=False, methods=['put'])
+    def remove_users(self, request, pk=None):
+        errors = {}
+        data = request.data
+        if not data.get('id_users', False) or (not data['id_users'] and isinstance(data['id_users'], str)):
+            errors['id_users'] = 'There is no field id_users or field is empty'
+        if not data.get('id_department', False) or (not data['id_users'] and isinstance(data['id_department'], str)):
+            errors['id_department'] = 'There is no field id_department or equals zero'
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+        users = User.objects.filter(pk__in=data['id_users']).prefetch_related('groups').only('groups')
+        for user in users:
+            user.groups.remove(data['id_department'])
+            return Response({"status": True})
 
 
 class CreateDepartmentView(generics.CreateAPIView):
