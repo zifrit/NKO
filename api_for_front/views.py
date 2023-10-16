@@ -206,7 +206,7 @@ class MainProjectViewSet(mixins.CreateModelMixin,
     def list(self, request, *args, **kwargs):
         return super(MainProjectViewSet, self).list(request, *args, **kwargs)
 
-    @extend_schema(examples=[OpenApiExample("Post example", )], description='successful post response {"status": "ok"}')
+    @extend_schema(examples=[OpenApiExample("Post example", )])
     def create(self, request, *args, **kwargs):
         return super(MainProjectViewSet, self).create(request, *args, **kwargs)
 
@@ -421,7 +421,7 @@ class CreateDepartmentView(generics.CreateAPIView):
     Созидание отделов
     """
     serializer_class = serializers.DepartmentSerializer
-    queryset = Group.objects.all()
+    queryset = Group.objects.prefetch_related('chief')
 
 
 class DeleteDepartmentView(generics.DestroyAPIView):
@@ -455,7 +455,7 @@ class DepartmentUserView(generics.ListAPIView):
     def get_queryset(self):
         return User.objects.select_related('profile'). \
             only(
-            'username', 'first_name', 'last_name', 'profile__middle_name', 'profile__job'
+            'username', 'first_name', 'last_name', 'profile__middle_name', 'profile__job', 'profile__is_chief'
         ).filter(groups__in=[self.kwargs['pk']])
 
 
