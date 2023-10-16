@@ -11,7 +11,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from my_user.models import UserProfile
 from . import models, serializers
-from .tasks import create_fields_for_step, replace_a_place
+from .tasks import create_fields_for_step, step_by_step
 from django.db import transaction
 
 
@@ -105,16 +105,13 @@ class Steps(ModelViewSet):
     @extend_schema(examples=[OpenApiExample(
         "Put example",
         value={
-            'id_step': 0,
             'id_project': 0,
         }
     )])
-    @action(methods=['put'], detail=False)
+    @action(methods=['put'], detail=True)
     def set_start(self, request):
         errors = {}
         data = request.data
-        if not data.get('id_step', False) or (not data['id_step'] and isinstance(data['id_step'], int)):
-            errors['id_step'] = 'There is no field id_step or equals zero'
         if not data.get('id_project', False) or (not data['id_project'] and isinstance(data['id_project'], int)):
             errors['id_project'] = 'There is no field id_project or equals zero'
         if errors:
@@ -127,16 +124,13 @@ class Steps(ModelViewSet):
     @extend_schema(examples=[OpenApiExample(
         "Put example",
         value={
-            'id_step': 0,
             'id_project': 0,
         }
     )])
-    @action(methods=['put'], detail=False)
+    @action(methods=['put'], detail=True)
     def remove_start(self, request):
         errors = {}
         data = request.data
-        if not data.get('id_step', False) or (not data['id_step'] and isinstance(data['id_step'], int)):
-            errors['id_step'] = 'There is no field id_step or equals zero'
         if not data.get('id_project', False) or (not data['id_project'] and isinstance(data['id_project'], int)):
             errors['id_project'] = 'There is no field id_project or equals zero'
         if errors:
