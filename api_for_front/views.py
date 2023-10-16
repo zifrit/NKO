@@ -102,6 +102,48 @@ class Steps(ModelViewSet):
         steps = models.Step.objects.filter(users_editor=user).only('name', 'id')
         return Response({step.id: step.name for step in steps})
 
+    @extend_schema(examples=[OpenApiExample(
+        "Put example",
+        value={
+            'id_step': 0,
+            'id_project': 0,
+        }
+    )])
+    @action(methods=['put'], detail=False)
+    def set_start(self, request):
+        errors = {}
+        data = request.data
+        if not data.get('id_step', False) or (not data['id_step'] and isinstance(data['id_step'], int)):
+            errors['id_step'] = 'There is no field id_step or equals zero'
+        if not data.get('id_project', False) or (not data['id_project'] and isinstance(data['id_project'], int)):
+            errors['id_project'] = 'There is no field id_project or equals zero'
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        if models.MainProject.objects.get(pk=data['id_project']).steps.filter(beginner_in_project=True).exists():
+            return Response({'error': 'The initial stage has already been set'}, status=status.HTTP_400_BAD_REQUEST)
+        models.Step.objects.filter(pk=data['id_step']).update(beginner_in_project=True)
+        return Response({'status': True}, status=status.HTTP_200_OK)
+
+    @extend_schema(examples=[OpenApiExample(
+        "Put example",
+        value={
+            'id_step': 0,
+            'id_project': 0,
+        }
+    )])
+    @action(methods=['put'], detail=False)
+    def remove_start(self, request):
+        errors = {}
+        data = request.data
+        if not data.get('id_step', False) or (not data['id_step'] and isinstance(data['id_step'], int)):
+            errors['id_step'] = 'There is no field id_step or equals zero'
+        if not data.get('id_project', False) or (not data['id_project'] and isinstance(data['id_project'], int)):
+            errors['id_project'] = 'There is no field id_project or equals zero'
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        models.Step.objects.filter(pk=data['id_step']).update(beginner_in_project=False)
+        return Response({'status': True}, status=status.HTTP_200_OK)
+
 
 class DeleteStepFiled(generics.DestroyAPIView):
     queryset = models.StepFields.objects.select_related('step').all()
