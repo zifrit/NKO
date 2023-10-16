@@ -219,9 +219,8 @@ class MainProjectViewSet(mixins.CreateModelMixin,
         return Response(data)
 
     def perform_create(self, serializer):
-        # todo вернуть на сессионого юзера
-        # serializer.save(user=self.request.user)
-        serializer.save(user_id=1)
+        serializer.save(user=self.request.user)
+        # serializer.save(user_id=1)
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -264,9 +263,8 @@ class TemplatesStep(ModelViewSet):
     serializer_class = serializers.CreateTemplatesStepSerializer
 
     def perform_create(self, serializer):
-        # todo вернуть на сессионого юзера
-        # serializer.save(user=self.request.user)
-        serializer.save(user_id=1)
+        serializer.save(user=self.request.user)
+        # serializer.save(user_id=1)
 
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)

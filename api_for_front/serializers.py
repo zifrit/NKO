@@ -96,7 +96,7 @@ class ListMainKoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.MainProject
-        fields = '__all__'
+        exclude = ['active']
 
 
 class CreateMainKoSerializer(serializers.ModelSerializer):

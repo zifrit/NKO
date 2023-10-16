@@ -17,6 +17,11 @@ class MainProject(models.Model):
     def __str__(self):
         return f'{self.user.username} {self.name}'
 
+    class Meta:
+        db_table = 'MainProject'
+        verbose_name = 'MainProject'
+        verbose_name_plural = 'MainProjects'
+
 
 class LinksStep(models.Model):
     """
@@ -27,6 +32,11 @@ class LinksStep(models.Model):
     description = models.CharField(max_length=255, verbose_name='описания', blank=True)
     data = models.JSONField(verbose_name='id фронта')
     color = models.CharField(max_length=255, verbose_name='цвет', blank=True)
+
+    class Meta:
+        db_table = 'LinksStep'
+        verbose_name = 'LinksStep'
+        verbose_name_plural = 'LinksSteps'
 
 
 class StepFiles(models.Model):
@@ -39,6 +49,11 @@ class StepFiles(models.Model):
                                   related_name='step_files')
     link_field = models.ForeignKey(to='StepFields', on_delete=models.CASCADE, verbose_name='связь с полем',
                                    related_name='field_file')
+
+    class Meta:
+        db_table = 'StepFiles'
+        verbose_name = 'StepFile'
+        verbose_name_plural = 'StepFiles'
 
 
 class StepImages(models.Model):
@@ -58,6 +73,11 @@ class StepTemplates(models.Model):
     user = models.ForeignKey(to=User, on_delete=models.SET_NULL, verbose_name='Кто создал', null=True)
     schema = models.JSONField(verbose_name='схема этапа')
 
+    class Meta:
+        db_table = 'StepTemplates'
+        verbose_name = 'StepTemplate'
+        verbose_name_plural = 'StepTemplates'
+
 
 class Step(models.Model):
     """
@@ -66,7 +86,7 @@ class Step(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
     placement = models.JSONField(verbose_name='Расположение')
     project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
-                                   related_name='steps')
+                                related_name='steps')
     noda_front = models.CharField(max_length=255, verbose_name='id ноды фронта')
     templates_schema = models.ForeignKey(to='StepTemplates', on_delete=models.SET_NULL, null=True,
                                          verbose_name='Схема для создания', related_name='steps')
