@@ -97,9 +97,9 @@ class Step(models.Model):
                                      null=True, blank=True, related_name='editor')
     responsible_persons_scheme = models.JSONField(verbose_name='Схема ответственных лиц', blank=True, default=dict({
 
-        "users_editor": 0,
+        "users_editor": '',
         "users_look": [],
-        "users_inspecting": 0
+        "users_inspecting": ''
     }
     ))
     finished = models.BooleanField(verbose_name='Завершенность', default=False)
