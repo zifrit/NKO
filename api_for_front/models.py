@@ -6,7 +6,7 @@ class MainProject(models.Model):
     """
     Model MainProject information about the main project
     """
-    name = models.CharField(max_length=255, verbose_name='Название проекта', db_index=True)
+    name = models.CharField(max_length=255, verbose_name='Название проекта', db_index=True, unique=True)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name='Кто создал')
     date_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создание')
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
@@ -104,6 +104,7 @@ class Step(models.Model):
     ))
     finished = models.BooleanField(verbose_name='Завершенность', default=False)
     active = models.BooleanField(verbose_name='В процессе', default=False)
+    beginner_in_project = models.BooleanField(verbose_name='Начинающий в проекте', default=False)
     date_create = models.DateTimeField(verbose_name='Дата создание', auto_now_add=True)
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)

@@ -30,6 +30,7 @@ class CreateTextareaFieldSerializer(serializers.ModelSerializer):
 
 class ViewStepSerializer(serializers.ModelSerializer):
     project = serializers.CharField(source='project.name')
+    project_id = serializers.IntegerField(source='project.id')
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
@@ -48,7 +49,7 @@ class ViewStepSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Step
-        fields = ['id', 'placement', 'name', 'project', 'noda_front']
+        fields = ['id', 'name', 'project', 'project_id', 'noda_front', 'placement', 'responsible_persons_scheme']
 
 
 class CreateStepSerializer(serializers.ModelSerializer):
