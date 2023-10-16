@@ -99,7 +99,7 @@ class Steps(ModelViewSet):
     @action(methods=['get'], detail=False)
     def user_steps(self, request):
         user = request.user
-        steps = models.Step.objects.filter(users_editor=user).only('name', 'id')
+        steps = models.Step.objects.filter(users_editor=user, active=True).only('name', 'id')
         return Response({step.id: step.name for step in steps})
 
     @extend_schema(examples=[OpenApiExample(
@@ -109,16 +109,16 @@ class Steps(ModelViewSet):
         }
     )])
     @action(methods=['put'], detail=True)
-    def set_start(self, request):
+    def set_start(self, request, pk):
         errors = {}
         data = request.data
         if not data.get('id_project', False) or (not data['id_project'] and isinstance(data['id_project'], int)):
             errors['id_project'] = 'There is no field id_project or equals zero'
         if errors:
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
-        if models.MainProject.objects.get(pk=data['id_project']).steps.filter(beginner_in_project=True).exists():
+        if models.MainProject.objects.get(pk=int(data['id_project'])).steps.filter(beginner_in_project=True).exists():
             return Response({'error': 'The initial stage has already been set'}, status=status.HTTP_400_BAD_REQUEST)
-        models.Step.objects.filter(pk=data['id_step']).update(beginner_in_project=True)
+        models.Step.objects.filter(pk=pk).update(beginner_in_project=True)
         return Response({'status': True}, status=status.HTTP_200_OK)
 
     @extend_schema(examples=[OpenApiExample(
@@ -128,14 +128,14 @@ class Steps(ModelViewSet):
         }
     )])
     @action(methods=['put'], detail=True)
-    def remove_start(self, request):
+    def remove_start(self, request, pk):
         errors = {}
         data = request.data
         if not data.get('id_project', False) or (not data['id_project'] and isinstance(data['id_project'], int)):
             errors['id_project'] = 'There is no field id_project or equals zero'
         if errors:
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
-        models.Step.objects.filter(pk=data['id_step']).update(beginner_in_project=False)
+        models.Step.objects.filter(pk=pk).update(beginner_in_project=False)
         return Response({'status': True}, status=status.HTTP_200_OK)
 
 
