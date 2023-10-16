@@ -97,13 +97,13 @@ class ListMainKoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.MainProject
-        exclude = ['active']
+        fields = '__all__'
 
 
 class CreateMainKoSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.MainProject
-        exclude = ['user', ]
+        exclude = ['user', 'active']
 
 
 class LinkStepSerializer(serializers.ModelSerializer):

@@ -11,7 +11,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from my_user.models import UserProfile
 from . import models, serializers
-from .tasks import create_fields_for_step, step_by_step
+from .tasks import create_fields_for_step
 from django.db import transaction
 
 
@@ -174,6 +174,15 @@ class MainProjectViewSet(mixins.CreateModelMixin,
         'date_start',
     ]
 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+        # serializer.save(user_id=1)
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return serializers.CreateMainKoSerializer
+        return super(MainProjectViewSet, self).get_serializer_class()
+
     @extend_schema(examples=[OpenApiExample(
         "get example",
         value={
@@ -261,14 +270,22 @@ class MainProjectViewSet(mixins.CreateModelMixin,
                 data[step.name]['files'].append({'name': file.file_name, 'path': str(file.path_file)})
         return Response(data)
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-        # serializer.save(user_id=1)
-
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return serializers.CreateMainKoSerializer
-        return super(MainProjectViewSet, self).get_serializer_class()
+    @action(detail=True, methods=['put'])
+    def start_project(self, request, pk=None):
+        if self.get_queryset().get(pk=pk).active:
+            return Response({"error": 'The project is started'}, status=status.HTTP_400_BAD_REQUEST)
+        self.get_queryset().filter(pk=pk).update(active=True)
+        try:
+            step = models.MainProject.objects.get(pk=pk).steps.get(beginner_in_project=True)
+        except models.Step.DoesNotExist:
+            return Response({"error": 'The project does not have an initial stage'})
+        responsible_persons_scheme = step.responsible_persons_scheme
+        step.users_look.add(*responsible_persons_scheme['users_look'])
+        step.users_editor_id = responsible_persons_scheme['users_editor']
+        step.users_inspecting_id = responsible_persons_scheme['users_inspecting']
+        step.active = True
+        step.save()
+        return Response({"status": True}, status=status.HTTP_200_OK)
 
 
 class LinkStepViewSet(ModelViewSet):
@@ -604,11 +621,14 @@ class StepByStep(generics.GenericAPIView):
             old_step.users_look.add(1)
             old_step.users_editor_id = 1
             old_step.users_inspecting_id = 1
+            old_step.finished = True
+            old_step.active = False
             old_step.save()
 
             next_step.users_look.add(*responsible_persons_scheme['users_look'])
             next_step.users_editor_id = responsible_persons_scheme['users_editor']
             next_step.users_inspecting_id = responsible_persons_scheme['users_inspecting']
+            next_step.active = True
             next_step.save()
         return Response({"Status": True}, status=status.HTTP_200_OK)
 
