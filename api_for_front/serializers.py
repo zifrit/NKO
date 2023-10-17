@@ -117,6 +117,8 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = ['name', 'chief']
 
     def create(self, validated_data):
+        if validated_data['chief'].is_chief:
+            raise serializers.ValidationError('User is already responsible for another department')
         group = super(DepartmentSerializer, self).create(validated_data)
         validated_data['chief'].chief_department = group
         validated_data['chief'].is_chief = True

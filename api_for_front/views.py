@@ -155,7 +155,7 @@ class MainProjectViewSet(mixins.CreateModelMixin,
     serializer_class = serializers.ListMainKoSerializer
     queryset = models.MainProject.objects.all().only(
         'name', 'date_create', 'date_start', 'date_end', 'last_change', 'user__username').select_related('user'). \
-        annotate(count_step=Count('steps'), finished_steps=Count('steps', filter=Q(steps__finished=True)))
+        annotate(count_step=Count('steps'), finished_steps=Count('steps', filter=Q(steps__finished=True)), )
     filter_backends = [
         SearchFilter,
         DjangoFilterBackend,
