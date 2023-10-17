@@ -604,7 +604,20 @@ class StepByStep(generics.GenericAPIView):
     def post(self, request, pk):
         with transaction.atomic():
             if not models.LinksStep.objects.filter(start_id=pk).exists():
-                return Response({"Error": 'step has no any links'}, status=status.HTTP_400_BAD_REQUEST)
+                last_step = models.Step.objects. \
+                    only('id', 'responsible_persons_scheme', 'users_editor__id', 'users_look__id',
+                         'users_inspecting__id'). \
+                    get(pk=pk)
+                last_step.users_look.clear()
+                last_step.users_look.add(1)
+                last_step.users_editor_id = 1
+                last_step.users_inspecting_id = 1
+                last_step.finished = True
+                last_step.active = False
+                last_step.save()
+                return Response({"Error": 'step has no any links. Set default responsible_persons_scheme'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
             id_nex_step = models.LinksStep.objects.only('end_id').get(start_id=pk).end_id
             old_step = models.Step.objects. \
                 only('id', 'responsible_persons_scheme', 'users_editor__id', 'users_look__id', 'users_inspecting__id'). \
