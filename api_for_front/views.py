@@ -550,11 +550,11 @@ class AddToDepartmentUserView(generics.GenericAPIView):
         if data['action'] == 'add':
             for user in users:
                 user.groups.add(data['id_department'])
-                return Response({"status": True})
+            return Response({"status": True})
         elif data['action'] == 'remove':
             for user in users:
                 user.groups.remove(data['id_department'])
-                return Response({"status": True})
+            return Response({"status": True})
         else:
             return Response({"Error": 'Not correct action'}, status=status.HTTP_400_BAD_REQUEST)
 

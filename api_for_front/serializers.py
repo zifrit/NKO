@@ -22,12 +22,6 @@ class CreateTemplatesStepSerializer(serializers.ModelSerializer):
         return value
 
 
-class CreateTextareaFieldSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.FieldTextarea
-        fields = '__all__'
-
-
 class ViewStepSerializer(serializers.ModelSerializer):
     project = serializers.CharField(source='project.name')
     project_id = serializers.IntegerField(source='project.id')
