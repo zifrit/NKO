@@ -335,15 +335,17 @@ class TemplatesStep(ModelViewSet):
             value={
                 "id_template_main_project": 0,
                 "new_name": 'string',
-                "id_template": 0
+                "id_template": 0,
+                "noda_front": 'string'
             }
         )]
     )
     @action(detail=False, methods=['post'])
     def copy_template(self, request, pk=None):
         data = request.data
-        error = check_errors.check_error(tag_error=['id_template_main_project', 'new_name', 'id_template'],
-                                         check_data=data)
+        error = check_errors.check_error(
+            tag_error=['id_template_main_project', 'new_name', 'id_template', 'noda_front'],
+            check_data=data)
         if error:
             return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
         try:
@@ -354,6 +356,7 @@ class TemplatesStep(ModelViewSet):
         copy_schema._state.adding = True
         copy_schema.name = data['new_name']
         copy_schema.original = False
+        copy_schema.noda_front = data['noda_front']
         copy_schema.template_project = data['id_template_main_project']
         copy_schema.save()
         return Response({"status": True}, status=status.HTTP_200_OK)
