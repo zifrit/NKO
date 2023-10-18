@@ -8,18 +8,34 @@ from my_user.models import UserProfile
 class CreateStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
-        fields = ['name', 'project', 'templates_schema']
+        fields = ['name', 'project', 'step_schema']
 
 
 class CreateTemplatesStepSerializer(serializers.ModelSerializer):
+    step_fields_schema = serializers.JSONField(source='schema.step_fields_schema')
+
     class Meta:
         model = models.StepTemplates
-        fields = ['id', 'name', 'schema', 'user']
+        fields = ['id', 'name', 'step_fields_schema']
 
-    def validate_schema(self, value):
-        if not value:
-            raise serializers.ValidationError("Schema cannot be empty")
-        return value
+    def create(self, validated_data):
+        print(validated_data)
+        schema = models.StepSchema.objects.create(name=validated_data['name'],
+                                                  step_fields_schema=validated_data['schema']['step_fields_schema'],
+                                                  original=True)
+        return models.StepTemplates.objects.create(templates=schema, name=validated_data['name'],
+                                                   creator=validated_data['creator'])
+
+    def update(self, instance, validated_data):
+        schema_data = validated_data.pop('schema')
+        schema = instance.schema
+        instance.name = validated_data.get('name', instance.name)
+        instance.save()
+
+        schema.step_fields_schema = schema_data.get('step_fields_schema', schema.step_fields_schema)
+        schema.name = validated_data.get('name', instance.name)
+        schema.save()
+        return instance
 
 
 class ViewStepSerializer(serializers.ModelSerializer):
@@ -43,14 +59,14 @@ class ViewStepSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Step
-        fields = ['id', 'name', 'project', 'project_id', 'noda_front', 'beginner_in_project', 'placement',
+        fields = ['id', 'name', 'project', 'project_id', 'noda_front', 'first_in_project', 'placement',
                   'responsible_persons_scheme']
 
 
 class CreateStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
-        fields = ['id', 'placement', 'name', 'project', 'templates_schema', 'noda_front']
+        fields = ['id', 'placement', 'name', 'project', 'step_schema', 'noda_front']
 
 
 class UpdateStepSerializer(serializers.ModelSerializer):

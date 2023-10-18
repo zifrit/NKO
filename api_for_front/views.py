@@ -5,11 +5,12 @@ from rest_framework import generics, status, mixins
 from django.contrib.auth.models import Group, User
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 from my_user.models import UserProfile
+from api_for_front.my_utils import check_errors
 from . import models, serializers
 from .tasks import create_fields_for_step
 from django.db import transaction
@@ -116,9 +117,9 @@ class Steps(ModelViewSet):
             errors['id_project'] = 'There is no field id_project or equals zero'
         if errors:
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
-        if models.MainProject.objects.get(pk=int(data['id_project'])).steps.filter(beginner_in_project=True).exists():
+        if models.MainProject.objects.get(pk=int(data['id_project'])).steps.filter(first_in_project=True).exists():
             return Response({'error': 'The initial stage has already been set'}, status=status.HTTP_400_BAD_REQUEST)
-        models.Step.objects.filter(pk=pk).update(beginner_in_project=True)
+        models.Step.objects.filter(pk=pk).update(first_in_project=True)
         return Response({'status': True}, status=status.HTTP_200_OK)
 
     @extend_schema(examples=[OpenApiExample(
@@ -135,7 +136,7 @@ class Steps(ModelViewSet):
             errors['id_project'] = 'There is no field id_project or equals zero'
         if errors:
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
-        models.Step.objects.filter(pk=pk).update(beginner_in_project=False)
+        models.Step.objects.filter(pk=pk).update(first_in_project=False)
         return Response({'status': True}, status=status.HTTP_200_OK)
 
 
@@ -276,7 +277,7 @@ class MainProjectViewSet(mixins.CreateModelMixin,
             return Response({"error": 'The project is started'}, status=status.HTTP_400_BAD_REQUEST)
         self.get_queryset().filter(pk=pk).update(active=True)
         try:
-            step = models.MainProject.objects.get(pk=pk).steps.get(beginner_in_project=True)
+            step = models.MainProject.objects.get(pk=pk).steps.get(first_in_project=True)
         except models.Step.DoesNotExist:
             return Response({"error": 'The project does not have an initial stage'})
         responsible_persons_scheme = step.responsible_persons_scheme
@@ -319,15 +320,43 @@ class TemplatesStep(ModelViewSet):
     """
     CRUD для схем этапов
     """
-    queryset = models.StepTemplates.objects.select_related('user').only('user__id', 'name', 'schema', 'id')
+    queryset = models.StepTemplates.objects.select_related('schema', 'creator').only('creator_id',
+                                                                                     'schema__step_fields_schema',
+                                                                                     'name', 'schema__name')
     serializer_class = serializers.CreateTemplatesStepSerializer
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(creator=self.request.user)
         # serializer.save(user_id=1)
 
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
+    @extend_schema(
+        examples=[OpenApiExample(
+            "Post example",
+            value={
+                "id_template_main_project": 0,
+                "new_name": 'string',
+                "id_template": 0
+            }
+        )]
+    )
+    @action(detail=False, methods=['post'])
+    def copy_template(self, request, pk=None):
+        data = request.data
+        error = check_errors.check_error(tag_error=['id_template_main_project', 'new_name', 'id_template'],
+                                         check_data=data)
+        if error:
+            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            copy_schema = models.StepTemplates.objects.get(pk=data['id_template']).templates
+        except models.Step.DoesNotExist:
+            return Response({"error": 'There is no such scheme'}, status=status.HTTP_400_BAD_REQUEST)
+        copy_schema.pk = None
+        copy_schema._state.adding = True
+        copy_schema.name = data['new_name']
+        copy_schema.original = False
+        copy_schema.template_project = data['id_template_main_project']
+        copy_schema.save()
+        return Response({"status": True}, status=status.HTTP_200_OK)
 
 
 class ReplacementPlaceStep(generics.UpdateAPIView):

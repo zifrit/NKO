@@ -15,6 +15,16 @@ class MainKO(admin.ModelAdmin):
     list_per_page = 30
 
 
+@admin.register(models.TemplateMainProject)
+class MainKO(admin.ModelAdmin):
+    list_display = ['id', 'name', 'creator', 'archive']
+    list_editable = ['archive']
+    list_display_links = ['id', 'name']
+    search_fields = ['name']
+    save_on_top = True
+    list_per_page = 30
+
+
 @admin.register(models.Step)
 class StepAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'project_id']
@@ -49,9 +59,24 @@ class LinksStepAdmin(admin.ModelAdmin):
     list_per_page = 30
 
 
+class StepTemplatesInline(admin.TabularInline):
+    model = models.StepTemplates
+    extra = 1
+
+
+@admin.register(models.StepSchema)
+class StepSchemaAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'original']
+    list_display_links = ['id', 'name']
+    search_fields = ['name']
+    inlines = [StepTemplatesInline]
+    save_on_top = True
+    list_per_page = 30
+
+
 @admin.register(models.StepTemplates)
 class StepTemplatesAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'user']
+    list_display = ['id', 'name']
     list_display_links = ['id', 'name']
     search_fields = ['name']
     save_on_top = True
