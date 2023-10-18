@@ -344,12 +344,15 @@ class TemplatesStep(ModelViewSet):
     def copy_template(self, request, pk=None):
         data = request.data
         error = check_errors.check_error(
-            tag_error=['id_template_main_project', 'new_name', 'id_template', 'noda_front'],
+            tag_error={'id_template_main_project': int,
+                       'new_name': str,
+                       'id_template': int,
+                       'noda_front': str},
             check_data=data)
         if error:
             return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            copy_schema = models.StepTemplates.objects.get(pk=data['id_template']).templates
+            copy_schema = models.StepTemplates.objects.get(pk=data['id_template']).schema
         except models.Step.DoesNotExist:
             return Response({"error": 'There is no such scheme'}, status=status.HTTP_400_BAD_REQUEST)
         copy_schema.pk = None
@@ -383,7 +386,7 @@ class ReplacementPlaceStep(generics.UpdateAPIView):
             return Response({'Error': 'there are no new_replacement'}, status=status.HTTP_400_BAD_REQUEST)
         models.Step.objects.filter(pk=kwargs['pk']).update(
             placement=request.data.get('new_replacement', F('placement')))
-        return Response({'status': 'ok'})
+        return Response({'status': True})
 
 
 class Departments(mixins.CreateModelMixin,
