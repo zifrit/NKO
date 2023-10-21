@@ -3,7 +3,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from django.contrib.auth.models import Group, User
 from . import models
-from my_user.models import UserProfile
+from api_for_front.my_utils import copy_links_projectx
 
 
 class CreateTemplatesStepSerializer(serializers.ModelSerializer):
@@ -114,9 +114,15 @@ class ListMainKoSerializer(serializers.ModelSerializer):
 
 
 class CreateMainKoSerializer(serializers.ModelSerializer):
+    new_name = serializers.CharField(source='name')
+
     class Meta:
         model = models.MainKo
-        exclude = ['user', 'active']
+        fields = ['id', 'template_ko', 'new_name']
+
+    def create(self, validated_data):
+        print(validated_data)
+        return copy_links_projectx.copy_links(validated_data=validated_data)
 
 
 class CreateTemplateMainKoSerializer(serializers.ModelSerializer):

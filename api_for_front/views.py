@@ -48,8 +48,6 @@ class Steps(ModelViewSet):
             "placement": {
                 "x": "x",
                 "y": "y",
-                "w": "with",
-                "h": "height"
             },
             "noda_front": 'some front id'
         }
@@ -247,7 +245,11 @@ class MainKoViewSet(mixins.CreateModelMixin,
             "date_create": "2023-08-04",
             "date_start": "2023-08-04",
             "date_end": "2023-09-21",
-            "last_change": "2023-09-21"
+            "last_change": "2023-09-21",
+            "active": "True/False",
+            "template_ko": 0,
+            "count_step": 0,
+            "finished_steps": 0
         })])
     def list(self, request, *args, **kwargs):
         return super(MainKoViewSet, self).list(request, *args, **kwargs)
@@ -307,7 +309,7 @@ class TemplateMainKo(generics.ListCreateAPIView):
             "id": 0,
             "creator": "string",
             "name": "string",
-            "date_create": 'date sting',
+            "date_create": "date sting",
             "archive": "True/False"
         })])
     def get(self, request, *args, **kwargs):

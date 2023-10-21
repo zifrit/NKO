@@ -33,6 +33,7 @@ class TemplateMainKo(models.Model):
     creator = models.ForeignKey(to=User, on_delete=models.PROTECT, verbose_name='Кто создал')
     date_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создание')
     archive = models.BooleanField(verbose_name='Архив', default=False)
+    finished = models.BooleanField(verbose_name='Законченность', default=False)
 
     def __str__(self):
         return self.name
@@ -50,7 +51,9 @@ class LinksStep(models.Model):
     start_id = models.PositiveIntegerField(verbose_name='начало связи')
     end_id = models.PositiveIntegerField(verbose_name='конец связи')
     description = models.CharField(max_length=255, verbose_name='описания', blank=True)
-    data = models.JSONField(verbose_name='id фронта')
+    project_id = models.PositiveIntegerField(verbose_name='id шаблона проекта', null=True)
+    in_template = models.BooleanField(verbose_name='Относится ли к шаблону', default=True)
+    data = models.JSONField(verbose_name='id фронта',default=dict)
     color = models.CharField(max_length=255, verbose_name='цвет', blank=True)
 
     class Meta:
