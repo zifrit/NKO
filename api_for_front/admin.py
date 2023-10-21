@@ -5,7 +5,7 @@ from . import models
 # Register your models here.
 
 
-@admin.register(models.MainProject)
+@admin.register(models.MainKo)
 class MainKO(admin.ModelAdmin):
     list_display = ['id', 'name', 'user', 'active']
     list_editable = ['active']
@@ -15,7 +15,7 @@ class MainKO(admin.ModelAdmin):
     list_per_page = 30
 
 
-@admin.register(models.TemplateMainProject)
+@admin.register(models.TemplateMainKo)
 class MainKO(admin.ModelAdmin):
     list_display = ['id', 'name', 'creator', 'archive']
     list_editable = ['archive']

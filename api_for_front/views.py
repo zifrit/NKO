@@ -117,7 +117,7 @@ class Steps(ModelViewSet):
             errors['id_project'] = 'There is no field id_project or equals zero'
         if errors:
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
-        if models.MainProject.objects.get(pk=int(data['id_project'])).steps.filter(first_in_project=True).exists():
+        if models.MainKo.objects.get(pk=int(data['id_project'])).steps.filter(first_in_project=True).exists():
             return Response({'error': 'The initial stage has already been set'}, status=status.HTTP_400_BAD_REQUEST)
         models.Step.objects.filter(pk=pk).update(first_in_project=True)
         return Response({'status': True}, status=status.HTTP_200_OK)
@@ -145,16 +145,16 @@ class DeleteStepFiled(generics.DestroyAPIView):
     serializer_class = serializers.StepFieldsSerializer
 
 
-class MainProjectViewSet(mixins.CreateModelMixin,
-                         mixins.RetrieveModelMixin,
-                         mixins.DestroyModelMixin,
-                         mixins.ListModelMixin,
-                         GenericViewSet):
+class MainKoViewSet(mixins.CreateModelMixin,
+                    mixins.RetrieveModelMixin,
+                    mixins.DestroyModelMixin,
+                    mixins.ListModelMixin,
+                    GenericViewSet):
     """
     CRUd для главной модели
     """
     serializer_class = serializers.ListMainKoSerializer
-    queryset = models.MainProject.objects.all().only(
+    queryset = models.MainKo.objects.all().only(
         'name', 'date_create', 'date_start', 'date_end', 'last_change', 'user__username').select_related('user'). \
         annotate(count_step=Count('steps'), finished_steps=Count('steps', filter=Q(steps__finished=True)), )
     filter_backends = [
@@ -182,7 +182,7 @@ class MainProjectViewSet(mixins.CreateModelMixin,
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return serializers.CreateMainKoSerializer
-        return super(MainProjectViewSet, self).get_serializer_class()
+        return super(MainKoViewSet, self).get_serializer_class()
 
     @extend_schema(examples=[OpenApiExample(
         "get example",
@@ -229,7 +229,7 @@ class MainProjectViewSet(mixins.CreateModelMixin,
         },
     )])
     def retrieve(self, request, *args, **kwargs):
-        query = models.MainProject.objects.prefetch_related(
+        query = models.MainKo.objects.prefetch_related(
             Prefetch('steps', queryset=models.Step.objects.all().only('id', 'placement', 'name', 'project__id',
                                                                       'noda_front')),
             Prefetch('steps__fields', queryset=models.StepFields.objects.all()),
@@ -250,11 +250,7 @@ class MainProjectViewSet(mixins.CreateModelMixin,
             "last_change": "2023-09-21"
         })])
     def list(self, request, *args, **kwargs):
-        return super(MainProjectViewSet, self).list(request, *args, **kwargs)
-
-    @extend_schema(examples=[OpenApiExample("Post example", )])
-    def create(self, request, *args, **kwargs):
-        return super(MainProjectViewSet, self).create(request, *args, **kwargs)
+        return super(MainKoViewSet, self).list(request, *args, **kwargs)
 
     @action(detail=True, methods=['get'])
     def finished_steps(self, request, pk=None):
@@ -277,7 +273,7 @@ class MainProjectViewSet(mixins.CreateModelMixin,
             return Response({"error": 'The project is started'}, status=status.HTTP_400_BAD_REQUEST)
         self.get_queryset().filter(pk=pk).update(active=True)
         try:
-            step = models.MainProject.objects.get(pk=pk).steps.get(first_in_project=True)
+            step = models.MainKo.objects.get(pk=pk).steps.get(first_in_project=True)
         except models.Step.DoesNotExist:
             return Response({"error": 'The project does not have an initial stage'})
         responsible_persons_scheme = step.responsible_persons_scheme
@@ -287,6 +283,36 @@ class MainProjectViewSet(mixins.CreateModelMixin,
         step.active = True
         step.save()
         return Response({"status": True}, status=status.HTTP_200_OK)
+
+
+class TemplateMainKo(generics.ListCreateAPIView):
+    queryset = models.TemplateMainKo.objects.select_related('creator').only('name', 'creator_id',
+                                                                            'date_create', 'archive')
+    serializer_class = serializers.CreateTemplateMainKoSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(creator=self.request.user)
+
+    @extend_schema(examples=[OpenApiExample(
+        "Post example",
+        value={
+            "name": "string",
+        })])
+    def post(self, request, *args, **kwargs):
+        return super(TemplateMainKo, self).post(request, *args, **kwargs)
+
+    @extend_schema(examples=[OpenApiExample(
+        "Post example",
+        value={
+            "id": 0,
+            "creator": "string",
+            "name": "string",
+            "date_create": 'date sting',
+            "archive": "True/False"
+        })])
+    def get(self, request, *args, **kwargs):
+        self.serializer_class = serializers.ViewTemplateMainKoSerializer
+        return super(TemplateMainKo, self).get(request, *args, **kwargs)
 
 
 class LinkStepViewSet(ModelViewSet):

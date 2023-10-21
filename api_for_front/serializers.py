@@ -5,12 +5,6 @@ from . import models
 from my_user.models import UserProfile
 
 
-class CreateStepSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Step
-        fields = ['name', 'project', 'step_schema']
-
-
 class CreateTemplatesStepSerializer(serializers.ModelSerializer):
     step_fields_schema = serializers.JSONField(source='schema.step_fields_schema')
 
@@ -93,7 +87,7 @@ class RetrieveMainKoSerializer(serializers.ModelSerializer):
         return rep
 
     class Meta:
-        model = models.MainProject
+        model = models.MainKo
         fields = ['id', 'name']
 
 
@@ -107,14 +101,28 @@ class ListMainKoSerializer(serializers.ModelSerializer):
         return my_representation
 
     class Meta:
-        model = models.MainProject
+        model = models.MainKo
         fields = '__all__'
 
 
 class CreateMainKoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.MainProject
+        model = models.MainKo
         exclude = ['user', 'active']
+
+
+class CreateTemplateMainKoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.TemplateMainKo
+        exclude = ['creator']
+
+
+class ViewTemplateMainKoSerializer(serializers.ModelSerializer):
+    creator = serializers.CharField(source='creator.get_full_name')
+
+    class Meta:
+        model = models.TemplateMainKo
+        fields = '__all__'
 
 
 class LinkStepSerializer(serializers.ModelSerializer):

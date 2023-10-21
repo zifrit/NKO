@@ -14,7 +14,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'id', 'password', 'middle_name', 'first_name', 'last_name', 'job', 'groups',
+        fields = ['username', 'id', 'password', 'middle_name', 'first_name', 'last_name', 'job',
                   'description']
 
     def validate_middle_name(self, value):
@@ -24,9 +24,9 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         profile = validated_data.pop('profile')
-        groups = validated_data.pop('groups')
+        # groups = validated_data.pop('groups')
         user = User.objects.create(**validated_data)
-        user.groups.set(groups)
+        # user.groups.set(groups)
         user.save()
         models.UserProfile.objects.create(user=user, **profile)
         return user
@@ -39,7 +39,7 @@ class ViewUsersSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         my_rep = super(ViewUsersSerializer, self).to_representation(instance)
-        my_rep['groups'] = [group.name for group in instance.groups.all()]
+        my_rep['groups'] = [{'id': group.id, 'name': group.name} for group in instance.groups.all()]
         my_rep['last_login'] = instance.last_login
         return my_rep
 

@@ -2,12 +2,14 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class MainProject(models.Model):
+class MainKo(models.Model):
     """
     Model MainProject information about the main project
     """
     name = models.CharField(max_length=255, verbose_name='Название проекта', db_index=True, unique=True)
-    user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name='Кто создал')
+    user = models.ForeignKey(to=User, on_delete=models.PROTECT, verbose_name='Кто создал')
+    template_ko = models.ForeignKey(to='TemplateMainKo', on_delete=models.PROTECT, verbose_name='Шаблон',
+                                    related_name='ko')
     date_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создание')
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)
@@ -18,26 +20,27 @@ class MainProject(models.Model):
         return self.name
 
     class Meta:
-        db_table = 'MainProject'
-        verbose_name = 'MainProject'
-        verbose_name_plural = 'MainProjects'
+        db_table = 'MainKo'
+        verbose_name = 'MainKo'
+        verbose_name_plural = 'MainKo'
 
 
-class TemplateMainProject(models.Model):
+class TemplateMainKo(models.Model):
     """
     Model TemplateMainProject
     """
-    name = models.CharField(max_length=255, verbose_name='Название шаблона  проекта', db_index=True, unique=True)
-    creator = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name='Кто создал')
+    name = models.CharField(max_length=255, verbose_name='Название шаблона проекта', db_index=True, unique=True)
+    creator = models.ForeignKey(to=User, on_delete=models.PROTECT, verbose_name='Кто создал')
+    date_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создание')
     archive = models.BooleanField(verbose_name='Архив', default=False)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        db_table = 'TemplateMainProject'
-        verbose_name = 'TemplateMainProject'
-        verbose_name_plural = 'TemplatesMainProject'
+        db_table = 'TemplateMainKo'
+        verbose_name = 'TemplateMainKo'
+        verbose_name_plural = 'TemplatesMainKo'
 
 
 class LinksStep(models.Model):
@@ -79,13 +82,13 @@ class StepImages(models.Model):
     """
     file_name = models.CharField(verbose_name='Название файла', max_length=255)
     path_file = models.FileField(upload_to='images/%Y/%m.%d/', verbose_name='Файл')
-    link_main_project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='Объект привязки')
+    link_main_project = models.ForeignKey(to='TemplateMainKo', on_delete=models.CASCADE, verbose_name='Объект привязки')
 
 
 class StepTemplates(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название шаблона', db_index=True, unique=True)
     schema = models.OneToOneField(to='StepSchema', on_delete=models.CASCADE, verbose_name='схема')
-    creator = models.ForeignKey(to=User, on_delete=models.SET_NULL, verbose_name='Кто создал', null=True)
+    creator = models.ForeignKey(to=User, on_delete=models.PROTECT, verbose_name='Кто создал', null=True)
 
     class Meta:
         db_table = 'StepTemplates'
@@ -124,7 +127,7 @@ class Step(models.Model):
     """
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
     placement = models.JSONField(verbose_name='Расположение')
-    project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
+    project = models.ForeignKey(to='MainKo', on_delete=models.CASCADE, verbose_name='id проекта',
                                 related_name='steps')
     noda_front = models.CharField(max_length=255, verbose_name='id ноды фронта')
     step_schema = models.ForeignKey(to='StepSchema', on_delete=models.SET_NULL, null=True,
