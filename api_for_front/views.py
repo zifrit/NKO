@@ -355,6 +355,10 @@ class TemplatesStep(ModelViewSet):
         serializer.save(creator=self.request.user)
         # serializer.save(user_id=1)
 
+    def perform_destroy(self, instance):
+        instance.schema.delete()
+        instance.delete()
+
     @extend_schema(
         examples=[OpenApiExample(
             "Post example",

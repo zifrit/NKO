@@ -128,10 +128,10 @@ class Step(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
     placement = models.JSONField(verbose_name='Расположение')
     project = models.ForeignKey(to='MainKo', on_delete=models.CASCADE, verbose_name='id проекта',
-                                related_name='steps')
+                                related_name='steps', null=True, blank=True, )
     noda_front = models.CharField(max_length=255, verbose_name='id ноды фронта')
     step_schema = models.ForeignKey(to='StepSchema', on_delete=models.SET_NULL, null=True,
-                                    verbose_name='Схема для создания', related_name='steps')
+                                    verbose_name='Схема для создания', related_name='steps', blank=True)
     users_look = models.ManyToManyField(to=User, verbose_name='Те кто смотрят', blank=True, related_name='look')
     users_inspecting = models.ForeignKey(to=User, verbose_name='Тот кто проверяет', on_delete=models.SET_NULL,
                                          null=True, blank=True, related_name='inspecting')

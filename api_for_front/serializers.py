@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import Q
 from rest_framework import serializers
 from django.contrib.auth.models import Group, User
@@ -13,12 +14,13 @@ class CreateTemplatesStepSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'step_fields_schema']
 
     def create(self, validated_data):
-        print(validated_data)
-        schema = models.StepSchema.objects.create(name=validated_data['name'],
-                                                  step_fields_schema=validated_data['schema']['step_fields_schema'],
-                                                  original=True)
-        return models.StepTemplates.objects.create(templates=schema, name=validated_data['name'],
-                                                   creator=validated_data['creator'])
+        with transaction.atomic():
+            schema = models.StepSchema.objects.create(name=validated_data['name'],
+                                                      step_fields_schema=validated_data['schema']['step_fields_schema'],
+                                                      original=True)
+            step_template = models.StepTemplates.objects.create(schema=schema, name=validated_data['name'],
+                                                                creator=validated_data['creator'])
+            return step_template
 
     def update(self, instance, validated_data):
         schema_data = validated_data.pop('schema')
@@ -27,6 +29,12 @@ class CreateTemplatesStepSerializer(serializers.ModelSerializer):
         instance.save()
 
         schema.step_fields_schema = schema_data.get('step_fields_schema', schema.step_fields_schema)
+        schema.placement = schema_data.get('placement', schema.placement)
+        schema.first_in_project = schema_data.get('first_in_project', schema.first_in_project)
+        schema.last_in_project = schema_data.get('placement', schema.last_in_project)
+        schema.last_in_project = schema_data.get('noda_front', schema.noda_front)
+        schema.responsible_persons_scheme = schema_data.get('responsible_persons_scheme',
+                                                            schema.responsible_persons_scheme)
         schema.name = validated_data.get('name', instance.name)
         schema.save()
         return instance
