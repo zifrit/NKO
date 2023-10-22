@@ -29,12 +29,6 @@ class CreateTemplatesStepSerializer(serializers.ModelSerializer):
         instance.save()
 
         schema.step_fields_schema = schema_data.get('step_fields_schema', schema.step_fields_schema)
-        schema.placement = schema_data.get('placement', schema.placement)
-        schema.first_in_project = schema_data.get('first_in_project', schema.first_in_project)
-        schema.last_in_project = schema_data.get('placement', schema.last_in_project)
-        schema.last_in_project = schema_data.get('noda_front', schema.noda_front)
-        schema.responsible_persons_scheme = schema_data.get('responsible_persons_scheme',
-                                                            schema.responsible_persons_scheme)
         schema.name = validated_data.get('name', instance.name)
         schema.save()
         return instance
@@ -65,18 +59,16 @@ class ViewStepSerializer(serializers.ModelSerializer):
                   'responsible_persons_scheme']
 
 
-class CreateStepSerializer(serializers.ModelSerializer):
+class CreateStepSchemaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Step
-        fields = ['id', 'placement', 'name', 'project', 'step_schema', 'noda_front']
+        model = models.StepSchema
+        fields = ['name', 'noda_front', 'template_project', 'step_fields_schema', 'placement']
 
 
-class UpdateStepSerializer(serializers.ModelSerializer):
-    fields = serializers.JSONField()
-
+class UpdateStepSchemaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Step
-        fields = ['id', 'name', 'fields']
+        model = models.StepSchema
+        fields = ['id', 'name', 'step_fields_schema']
 
 
 class StepFieldsSerializer(serializers.ModelSerializer):

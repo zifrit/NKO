@@ -34,26 +34,59 @@ class Steps(ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
-            return serializers.CreateStepSerializer
+            return serializers.CreateStepSchemaSerializer
         elif self.request.method == 'PUT':
-            return serializers.UpdateStepSerializer
+            return serializers.UpdateStepSchemaSerializer
         return serializers.ViewStepSerializer
 
-    @extend_schema(examples=[OpenApiExample(
-        "create example",
-        value={
-            "templates_schema": 14,
-            "name": "room step",
-            "project": 1,
-            "placement": {
-                "x": "x",
-                "y": "y",
-            },
-            "noda_front": 'some front id'
+    @extend_schema(
+        examples=[OpenApiExample(
+            "Create example",
+            value={
+                "id_template_main_project": 0,
+                "new_name": 'string',
+                "id_template": 0,
+                "noda_front": 'string',
+                "placement": {
+                    "x": "x",
+                    "y": "y",
+                },
+            }
+        )],
+        responses={
+            200: OpenApiResponse(response=serializers.ExampleSerializer,
+                                 examples=[OpenApiExample(
+                                     "response",
+                                     value={
+                                         "status": True,
+                                     })])
+
         }
-    )])
+    )
     def create(self, request, *args, **kwargs):
-        return super(Steps, self).create(request, *args, **kwargs)
+        data = request.data
+        error = check_errors.check_error(
+            tag_error={'id_template_main_project': int,
+                       'new_name': str,
+                       'id_template': int,
+                       'noda_front': str,
+                       'placement': dict},
+            check_data=data)
+        if error:
+            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            copy_schema = models.StepTemplates.objects.get(pk=data['id_template']).schema
+        except models.Step.DoesNotExist:
+            return Response({"error": 'There is no such scheme'}, status=status.HTTP_400_BAD_REQUEST)
+        copy_schema.pk = None
+        copy_schema._state.adding = True
+        copy_schema.name = data['new_name']
+        copy_schema.original = False
+        copy_schema.noda_front = data['noda_front']
+        copy_schema.placement = data['placement']
+        copy_schema.template_project = data['id_template_main_project']
+        copy_schema.save()
+        return Response(serializers.CreateStepSchemaSerializer(instance=copy_schema).data, status=status.HTTP_200_OK)
 
     @extend_schema(examples=[OpenApiExample(
         "put example",
@@ -61,11 +94,9 @@ class Steps(ModelViewSet):
             "name": 'step name',
             "fields": [
                 {
-                    "id": "id field",
                     "type": "type_filed",
-                    "data": {
-                        "identify": "type_filed"
-                    }
+                    "label": "label",
+                    "data": "{}"
                 }
             ]
         }
@@ -95,7 +126,7 @@ class Steps(ModelViewSet):
             'id_step': 'name step'
         }
     )])
-    @action(methods=['get'], detail=False)
+    @action(methods=['get'], detail=False, url_path='user-steps')
     def user_steps(self, request):
         user = request.user
         steps = models.Step.objects.filter(users_editor=user, active=True).only('name', 'id')
@@ -136,11 +167,6 @@ class Steps(ModelViewSet):
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
         models.Step.objects.filter(pk=pk).update(first_in_project=False)
         return Response({'status': True}, status=status.HTTP_200_OK)
-
-
-class DeleteStepFiled(generics.DestroyAPIView):
-    queryset = models.StepFields.objects.select_related('step').all()
-    serializer_class = serializers.StepFieldsSerializer
 
 
 class MainKoViewSet(mixins.CreateModelMixin,
@@ -185,16 +211,14 @@ class MainKoViewSet(mixins.CreateModelMixin,
     @extend_schema(examples=[OpenApiExample(
         "get example",
         value={
-            "id": 1,
+            "id": 0,
             "name": 'test name',
             "steps": [
                 {
-                    "id": 1,
+                    "id": 0,
                     "placement": {
                         "x": "x",
                         "y": "y",
-                        "w": "with",
-                        "h": "height"
                     },
                     "name": "test12",
                     "project": "test",
@@ -210,9 +234,9 @@ class MainKoViewSet(mixins.CreateModelMixin,
             ],
             "links": [
                 {
-                    "id": 1,
-                    "start_id": 1,
-                    "end_id": 2,
+                    "id": 0,
+                    "start_id": 0,
+                    "end_id": 0,
                     "description": "string",
                     "color": "string"
                 }
@@ -348,9 +372,8 @@ class TemplatesStep(ModelViewSet):
     """
     CRUD для схем этапов
     """
-    queryset = models.StepTemplates.objects.select_related('schema', 'creator').only('creator_id',
-                                                                                     'schema__step_fields_schema',
-                                                                                     'name', 'schema__name')
+    queryset = models.StepTemplates.objects.select_related('schema').only('schema__step_fields_schema',
+                                                                          'name', 'schema__name')
     serializer_class = serializers.CreateTemplatesStepSerializer
 
     def perform_create(self, serializer):
@@ -360,41 +383,6 @@ class TemplatesStep(ModelViewSet):
     def perform_destroy(self, instance):
         instance.schema.delete()
         instance.delete()
-
-    @extend_schema(
-        examples=[OpenApiExample(
-            "Post example",
-            value={
-                "id_template_main_project": 0,
-                "new_name": 'string',
-                "id_template": 0,
-                "noda_front": 'string'
-            }
-        )]
-    )
-    @action(detail=False, methods=['post'])
-    def copy_template(self, request, pk=None):
-        data = request.data
-        error = check_errors.check_error(
-            tag_error={'id_template_main_project': int,
-                       'new_name': str,
-                       'id_template': int,
-                       'noda_front': str},
-            check_data=data)
-        if error:
-            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            copy_schema = models.StepTemplates.objects.get(pk=data['id_template']).schema
-        except models.Step.DoesNotExist:
-            return Response({"error": 'There is no such scheme'}, status=status.HTTP_400_BAD_REQUEST)
-        copy_schema.pk = None
-        copy_schema._state.adding = True
-        copy_schema.name = data['new_name']
-        copy_schema.original = False
-        copy_schema.noda_front = data['noda_front']
-        copy_schema.template_project = data['id_template_main_project']
-        copy_schema.save()
-        return Response({"status": True}, status=status.HTTP_200_OK)
 
 
 class ReplacementPlaceStep(generics.UpdateAPIView):

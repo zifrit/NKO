@@ -111,8 +111,7 @@ class StepSchema(models.Model):
         "users_editor": '',
         "users_look": [],
         "users_inspecting": ''
-    }
-    ))
+    }))
     first_in_project = models.BooleanField(verbose_name='Начинающий в проекте', default=False)
     last_in_project = models.BooleanField(verbose_name='Завершающий в проекте', default=False)
     original = models.BooleanField(verbose_name='Оригинал', default=False)

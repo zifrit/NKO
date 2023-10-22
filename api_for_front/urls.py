@@ -5,13 +5,12 @@ from . import views
 
 router = routers.SimpleRouter()
 router.register(r'projects', views.MainKoViewSet)
-router.register(r'steps', views.Steps)
+router.register(r'schema-steps', views.Steps)
 router.register(r'links', views.LinkStepViewSet)
 router.register(r'templates', views.TemplatesStep)
 router.register(r'departments_v2', views.Departments)
 
 urlpatterns = [
-    path('step-filed/delete/<int:pk>/', views.DeleteStepFiled.as_view(), name='step_filed_delete'),
     path('departments/', views.GetDepartmentView.as_view(), name='get_departments'),
     path('projects/templates/', views.TemplateMainKo.as_view(), name='get_departments'),
     path('departments/create/', views.CreateDepartmentView.as_view(), name='post_departments'),
