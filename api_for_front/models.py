@@ -89,6 +89,9 @@ class StepImages(models.Model):
 
 
 class StepTemplates(models.Model):
+    """
+    Model Step templates
+    """
     name = models.CharField(max_length=255, verbose_name='Название шаблона', db_index=True, unique=True)
     schema = models.OneToOneField(to='StepSchema', on_delete=models.CASCADE, verbose_name='схема')
     creator = models.ForeignKey(to=User, on_delete=models.PROTECT, verbose_name='Кто создал', null=True)
@@ -132,20 +135,11 @@ class Step(models.Model):
     project = models.ForeignKey(to='MainKo', on_delete=models.CASCADE, verbose_name='id проекта',
                                 related_name='steps', null=True, blank=True, )
     noda_front = models.CharField(max_length=255, verbose_name='id ноды фронта')
-    step_schema = models.ForeignKey(to='StepSchema', on_delete=models.SET_NULL, null=True,
-                                    verbose_name='Схема для создания', related_name='steps', blank=True)
     users_look = models.ManyToManyField(to=User, verbose_name='Те кто смотрят', blank=True, related_name='look')
     users_inspecting = models.ForeignKey(to=User, verbose_name='Тот кто проверяет', on_delete=models.SET_NULL,
                                          null=True, blank=True, related_name='inspecting')
     users_editor = models.ForeignKey(to=User, verbose_name='Тот кто ответственен', on_delete=models.SET_NULL,
                                      null=True, blank=True, related_name='editor')
-    responsible_persons_scheme = models.JSONField(verbose_name='Схема ответственных лиц', blank=True, default=dict({
-
-        "users_editor": '',
-        "users_look": [],
-        "users_inspecting": ''
-    }
-    ))
     finished = models.BooleanField(verbose_name='Завершенность', default=False)
     active = models.BooleanField(verbose_name='В процессе', default=False)
     first_in_project = models.BooleanField(verbose_name='Начинающий в проекте', default=False)

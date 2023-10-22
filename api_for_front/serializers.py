@@ -34,7 +34,7 @@ class CreateTemplatesStepSerializer(serializers.ModelSerializer):
         return instance
 
 
-class ViewStepSerializer(serializers.ModelSerializer):
+class RetrieveStepSerializer(serializers.ModelSerializer):
     project = serializers.CharField(source='project.name')
     project_id = serializers.IntegerField(source='project.id')
 
@@ -55,14 +55,20 @@ class ViewStepSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Step
-        fields = ['id', 'name', 'project', 'project_id', 'noda_front', 'first_in_project', 'placement',
-                  'responsible_persons_scheme']
+        fields = ['id', 'name', 'project', 'project_id', 'noda_front', 'placement']
+
+
+class ViewStepSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Step
+        fields = ['id', 'name']
 
 
 class CreateStepSchemaSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.StepSchema
-        fields = ['name', 'noda_front', 'template_project', 'step_fields_schema', 'placement']
+        fields = ['id', 'name', 'noda_front', 'template_project', 'step_fields_schema', 'placement', 'original']
+        read_only_fields = ['original']
 
 
 class UpdateStepSchemaSerializer(serializers.ModelSerializer):

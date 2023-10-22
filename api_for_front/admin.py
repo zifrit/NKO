@@ -66,7 +66,7 @@ class StepTemplatesInline(admin.TabularInline):
 
 @admin.register(models.StepSchema)
 class StepSchemaAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'original']
+    list_display = ['id', 'name', 'template_project', 'original']
     list_display_links = ['id', 'name']
     search_fields = ['name']
     inlines = [StepTemplatesInline]
