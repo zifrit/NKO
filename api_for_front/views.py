@@ -71,7 +71,7 @@ class SchemaSteps(ModelViewSet):
         copy_schema.original = False
         copy_schema.noda_front = data['noda_front']
         copy_schema.placement = data['placement']
-        copy_schema.template_project = data['id_template_main_project']
+        copy_schema.template_project_id = data['id_template_main_project']
         copy_schema.save()
         return Response(serializers.CreateStepSchemaSerializer(instance=copy_schema).data, status=status.HTTP_200_OK)
 
@@ -206,8 +206,7 @@ class RetrieveStep(generics.RetrieveAPIView):
         'project__name', 'name', 'placement', 'noda_front')
 
 
-class MainKoViewSet(mixins.CreateModelMixin,
-                    mixins.RetrieveModelMixin,
+class MainKoViewSet(mixins.RetrieveModelMixin,
                     mixins.DestroyModelMixin,
                     mixins.ListModelMixin,
                     GenericViewSet):
@@ -239,11 +238,6 @@ class MainKoViewSet(mixins.CreateModelMixin,
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
         # serializer.save(user_id=1)
-
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return serializers.CreateMainKoSerializer
-        return super(MainKoViewSet, self).get_serializer_class()
 
     @extend_schema(examples=[OpenApiExample(
         "get example",
@@ -330,22 +324,22 @@ class MainKoViewSet(mixins.CreateModelMixin,
                 data[step.name]['files'].append({'name': file.file_name, 'path': str(file.path_file)})
         return Response(data)
 
-    @action(detail=True, methods=['put'])
+    @extend_schema(examples=[OpenApiExample(
+        "get example",
+        value={
+            "new_name": "string",
+            "template_ko": 0,
+        })])
+    @action(detail=False, methods=['post'], url_path='start-project')
     def start_project(self, request, pk=None):
-        if self.get_queryset().get(pk=pk).active:
-            return Response({"error": 'The project is started'}, status=status.HTTP_400_BAD_REQUEST)
-        self.get_queryset().filter(pk=pk).update(active=True)
-        try:
-            step = models.MainKo.objects.get(pk=pk).steps.get(first_in_project=True)
-        except models.Step.DoesNotExist:
-            return Response({"error": 'The project does not have an initial stage'})
-        responsible_persons_scheme = step.responsible_persons_scheme
-        step.users_look.add(*responsible_persons_scheme['users_look'])
-        step.users_editor_id = responsible_persons_scheme['users_editor']
-        step.users_inspecting_id = responsible_persons_scheme['users_inspecting']
-        step.active = True
-        step.save()
-        return Response({"status": True}, status=status.HTTP_200_OK)
+        main_ko = serializers.CreateMainKoSerializer(data=request.data)
+        if main_ko.is_valid():
+            main_ko = main_ko.save(user=self.request.user)
+            schema = main_ko.template_ko.step_schema.get(first_in_project=True)
+            link = models.LinksStep.objects.get(start_id=schema.id, project_id=main_ko.id)
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(main_ko.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TemplateMainKo(generics.ListCreateAPIView):

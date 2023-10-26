@@ -53,7 +53,7 @@ class LinksStep(models.Model):
     description = models.CharField(max_length=255, verbose_name='описания', blank=True)
     project_id = models.PositiveIntegerField(verbose_name='id шаблона проекта', null=True)
     in_template = models.BooleanField(verbose_name='Относится ли к шаблону', default=True)
-    data = models.JSONField(verbose_name='id фронта',default=dict)
+    data = models.JSONField(verbose_name='id фронта', default=dict)
     color = models.CharField(max_length=255, verbose_name='цвет', blank=True)
 
     class Meta:
@@ -107,7 +107,8 @@ class StepSchema(models.Model):
     Model schema for create a step
     """
     name = models.CharField(max_length=255, verbose_name='Название схемы', db_index=True)
-    template_project = models.PositiveIntegerField(blank=True, null=True, verbose_name='id шаблона проекта')
+    template_project = models.ForeignKey(to='TemplateMainKo', blank=True, null=True, verbose_name='Шаблона проекта',
+                                         on_delete=models.CASCADE, related_name='step_schema')
     placement = models.JSONField(verbose_name='Расположение', default=dict)
     step_fields_schema = models.JSONField(verbose_name='схема полей этапа')
     responsible_persons_scheme = models.JSONField(verbose_name='Схема ответственных лиц', blank=True, default=dict({
@@ -134,6 +135,7 @@ class Step(models.Model):
     placement = models.JSONField(verbose_name='Расположение')
     project = models.ForeignKey(to='MainKo', on_delete=models.CASCADE, verbose_name='id проекта',
                                 related_name='steps', null=True, blank=True, )
+    schema_step = models.PositiveIntegerField(verbose_name='id схемы этапа')
     noda_front = models.CharField(max_length=255, verbose_name='id ноды фронта')
     users_look = models.ManyToManyField(to=User, verbose_name='Те кто смотрят', blank=True, related_name='look')
     users_inspecting = models.ForeignKey(to=User, verbose_name='Тот кто проверяет', on_delete=models.SET_NULL,

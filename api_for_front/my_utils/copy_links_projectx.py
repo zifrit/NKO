@@ -13,6 +13,6 @@ def copy_links(validated_data: dict):
             link.pk = None
             link._state.adding = True
             link.project_id = main_ko.id
-            link.template_ko = False
+            link.in_template = False
             link.save()
     return main_ko
