@@ -119,7 +119,6 @@ class CreateMainKoSerializer(serializers.ModelSerializer):
         fields = ['id', 'template_ko', 'new_name']
 
     def create(self, validated_data):
-        print(validated_data)
         return copy_links_projectx.copy_links(validated_data=validated_data)
 
 
@@ -189,17 +188,17 @@ class DepartmentUserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'full_name', 'job', 'is_chief']
 
 
-class SetWhoResponsibleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Step
-        fields = ['responsible_persons_scheme']
-
-    def validate_responsible_persons_scheme(self, value: dict):
-        keys = ['users_editor', 'users_inspecting', 'users_look']
-        print(value)
-        if keys != sorted(list(value.keys())):
-            raise serializers.ValidationError("Incorrect scheme")
-        return value
+# class SetWhoResponsibleSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = models.Step
+#         fields = ['responsible_persons_scheme']
+#
+#     def validate_responsible_persons_scheme(self, value: dict):
+#         keys = ['users_editor', 'users_inspecting', 'users_look']
+#         print(value)
+#         if keys != sorted(list(value.keys())):
+#             raise serializers.ValidationError("Incorrect scheme")
+#         return value
 
 
 class SaveFileSerializer(serializers.ModelSerializer):

@@ -665,8 +665,8 @@ class SetGetWhoResponsibleStep(generics.UpdateAPIView, generics.RetrieveAPIView)
     """
     Назначение ответственного, наблюдателя и проверяющего для этапа
     """
-    queryset = models.Step.objects.only('responsible_persons_scheme')
-    serializer_class = serializers.SetWhoResponsibleSerializer
+    queryset = models.Step.objects.all()
+    serializer_class = serializers.ExampleSerializer
 
     @extend_schema(examples=[OpenApiExample(
         "put example",
@@ -707,7 +707,7 @@ class StepByStep(generics.GenericAPIView):
         with transaction.atomic():
             if not models.LinksStep.objects.filter(start_id=pk).exists():
                 last_step = models.Step.objects. \
-                    only('id', 'responsible_persons_scheme', 'users_editor__id', 'users_look__id',
+                    only('id', 'users_editor__id', 'users_look__id',
                          'users_inspecting__id'). \
                     get(pk=pk)
                 last_step.users_look.clear()
