@@ -1,8 +1,9 @@
+from django.db import transaction
 from django.db.models import Q
 from rest_framework import serializers
 from django.contrib.auth.models import Group, User
 from . import models
-from my_user.models import UserProfile
+from api_for_front.my_utils import copy_links_projectx
 
 
 class CreateTemplatesStepSerializer(serializers.ModelSerializer):
@@ -13,12 +14,13 @@ class CreateTemplatesStepSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'step_fields_schema']
 
     def create(self, validated_data):
-        print(validated_data)
-        schema = models.StepSchema.objects.create(name=validated_data['name'],
-                                                  step_fields_schema=validated_data['schema']['step_fields_schema'],
-                                                  original=True)
-        return models.StepTemplates.objects.create(templates=schema, name=validated_data['name'],
-                                                   creator=validated_data['creator'])
+        with transaction.atomic():
+            schema = models.StepSchema.objects.create(name=validated_data['name'],
+                                                      step_fields_schema=validated_data['schema']['step_fields_schema'],
+                                                      original=True)
+            step_template = models.StepTemplates.objects.create(schema=schema, name=validated_data['name'],
+                                                                creator=validated_data['creator'])
+            return step_template
 
     def update(self, instance, validated_data):
         schema_data = validated_data.pop('schema')
@@ -32,7 +34,7 @@ class CreateTemplatesStepSerializer(serializers.ModelSerializer):
         return instance
 
 
-class ViewStepSerializer(serializers.ModelSerializer):
+class RetrieveStepSerializer(serializers.ModelSerializer):
     project = serializers.CharField(source='project.name')
     project_id = serializers.IntegerField(source='project.id')
 
@@ -53,22 +55,26 @@ class ViewStepSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Step
-        fields = ['id', 'name', 'project', 'project_id', 'noda_front', 'first_in_project', 'placement',
-                  'responsible_persons_scheme']
+        fields = ['id', 'name', 'project', 'project_id', 'noda_front', 'placement']
 
 
-class CreateStepSerializer(serializers.ModelSerializer):
+class ViewStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Step
-        fields = ['id', 'placement', 'name', 'project', 'step_schema', 'noda_front']
+        fields = ['id', 'name']
 
 
-class UpdateStepSerializer(serializers.ModelSerializer):
-    fields = serializers.JSONField()
-
+class CreateStepSchemaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Step
-        fields = ['id', 'name', 'fields']
+        model = models.StepSchema
+        fields = ['id', 'name', 'noda_front', 'template_project', 'step_fields_schema', 'placement', 'original']
+        read_only_fields = ['original']
+
+
+class UpdateStepSchemaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.StepSchema
+        fields = ['id', 'name', 'step_fields_schema']
 
 
 class StepFieldsSerializer(serializers.ModelSerializer):
@@ -106,9 +112,14 @@ class ListMainKoSerializer(serializers.ModelSerializer):
 
 
 class CreateMainKoSerializer(serializers.ModelSerializer):
+    new_name = serializers.CharField(source='name')
+
     class Meta:
         model = models.MainKo
-        exclude = ['user', 'active']
+        fields = ['id', 'template_ko', 'new_name']
+
+    def create(self, validated_data):
+        return copy_links_projectx.copy_links(validated_data=validated_data)
 
 
 class CreateTemplateMainKoSerializer(serializers.ModelSerializer):
@@ -177,17 +188,17 @@ class DepartmentUserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'full_name', 'job', 'is_chief']
 
 
-class SetWhoResponsibleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Step
-        fields = ['responsible_persons_scheme']
-
-    def validate_responsible_persons_scheme(self, value: dict):
-        keys = ['users_editor', 'users_inspecting', 'users_look']
-        print(value)
-        if keys != sorted(list(value.keys())):
-            raise serializers.ValidationError("Incorrect scheme")
-        return value
+# class SetWhoResponsibleSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = models.Step
+#         fields = ['responsible_persons_scheme']
+#
+#     def validate_responsible_persons_scheme(self, value: dict):
+#         keys = ['users_editor', 'users_inspecting', 'users_look']
+#         print(value)
+#         if keys != sorted(list(value.keys())):
+#             raise serializers.ValidationError("Incorrect scheme")
+#         return value
 
 
 class SaveFileSerializer(serializers.ModelSerializer):

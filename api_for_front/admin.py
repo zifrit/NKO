@@ -53,7 +53,7 @@ class StepFilesAdmin(admin.ModelAdmin):
 
 @admin.register(models.LinksStep)
 class LinksStepAdmin(admin.ModelAdmin):
-    list_display = ['id', 'description', 'start_id', 'end_id', 'color']
+    list_display = ['id', 'project_id', 'start_id', 'end_id', 'description']
     list_display_links = ['id', 'description']
     save_on_top = True
     list_per_page = 30
@@ -66,7 +66,7 @@ class StepTemplatesInline(admin.TabularInline):
 
 @admin.register(models.StepSchema)
 class StepSchemaAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'original']
+    list_display = ['id', 'name', 'template_project', 'original']
     list_display_links = ['id', 'name']
     search_fields = ['name']
     inlines = [StepTemplatesInline]

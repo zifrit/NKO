@@ -33,6 +33,7 @@ class TemplateMainKo(models.Model):
     creator = models.ForeignKey(to=User, on_delete=models.PROTECT, verbose_name='Кто создал')
     date_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создание')
     archive = models.BooleanField(verbose_name='Архив', default=False)
+    finished = models.BooleanField(verbose_name='Законченность', default=False)
 
     def __str__(self):
         return self.name
@@ -50,7 +51,9 @@ class LinksStep(models.Model):
     start_id = models.PositiveIntegerField(verbose_name='начало связи')
     end_id = models.PositiveIntegerField(verbose_name='конец связи')
     description = models.CharField(max_length=255, verbose_name='описания', blank=True)
-    data = models.JSONField(verbose_name='id фронта')
+    project_id = models.PositiveIntegerField(verbose_name='id шаблона проекта', null=True)
+    in_template = models.BooleanField(verbose_name='Относится ли к шаблону', default=True)
+    data = models.JSONField(verbose_name='id фронта', default=dict)
     color = models.CharField(max_length=255, verbose_name='цвет', blank=True)
 
     class Meta:
@@ -86,6 +89,9 @@ class StepImages(models.Model):
 
 
 class StepTemplates(models.Model):
+    """
+    Model Step templates
+    """
     name = models.CharField(max_length=255, verbose_name='Название шаблона', db_index=True, unique=True)
     schema = models.OneToOneField(to='StepSchema', on_delete=models.CASCADE, verbose_name='схема')
     creator = models.ForeignKey(to=User, on_delete=models.PROTECT, verbose_name='Кто создал', null=True)
@@ -101,15 +107,15 @@ class StepSchema(models.Model):
     Model schema for create a step
     """
     name = models.CharField(max_length=255, verbose_name='Название схемы', db_index=True)
-    template_project = models.PositiveIntegerField(blank=True, null=True, verbose_name='id шаблона проекта')
+    template_project = models.ForeignKey(to='TemplateMainKo', blank=True, null=True, verbose_name='Шаблона проекта',
+                                         on_delete=models.CASCADE, related_name='step_schema')
     placement = models.JSONField(verbose_name='Расположение', default=dict)
     step_fields_schema = models.JSONField(verbose_name='схема полей этапа')
     responsible_persons_scheme = models.JSONField(verbose_name='Схема ответственных лиц', blank=True, default=dict({
         "users_editor": '',
         "users_look": [],
         "users_inspecting": ''
-    }
-    ))
+    }))
     first_in_project = models.BooleanField(verbose_name='Начинающий в проекте', default=False)
     last_in_project = models.BooleanField(verbose_name='Завершающий в проекте', default=False)
     original = models.BooleanField(verbose_name='Оригинал', default=False)
@@ -128,22 +134,14 @@ class Step(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
     placement = models.JSONField(verbose_name='Расположение')
     project = models.ForeignKey(to='MainKo', on_delete=models.CASCADE, verbose_name='id проекта',
-                                related_name='steps')
+                                related_name='steps', null=True, blank=True, )
+    schema_step = models.PositiveIntegerField(verbose_name='id схемы этапа')
     noda_front = models.CharField(max_length=255, verbose_name='id ноды фронта')
-    step_schema = models.ForeignKey(to='StepSchema', on_delete=models.SET_NULL, null=True,
-                                    verbose_name='Схема для создания', related_name='steps')
     users_look = models.ManyToManyField(to=User, verbose_name='Те кто смотрят', blank=True, related_name='look')
     users_inspecting = models.ForeignKey(to=User, verbose_name='Тот кто проверяет', on_delete=models.SET_NULL,
                                          null=True, blank=True, related_name='inspecting')
     users_editor = models.ForeignKey(to=User, verbose_name='Тот кто ответственен', on_delete=models.SET_NULL,
                                      null=True, blank=True, related_name='editor')
-    responsible_persons_scheme = models.JSONField(verbose_name='Схема ответственных лиц', blank=True, default=dict({
-
-        "users_editor": '',
-        "users_look": [],
-        "users_inspecting": ''
-    }
-    ))
     finished = models.BooleanField(verbose_name='Завершенность', default=False)
     active = models.BooleanField(verbose_name='В процессе', default=False)
     first_in_project = models.BooleanField(verbose_name='Начинающий в проекте', default=False)

@@ -16,16 +16,12 @@ from .tasks import create_fields_for_step
 from django.db import transaction
 
 
-class Steps(ModelViewSet):
+class SchemaSteps(ModelViewSet):
     """
     CRUd для модели этап
     """
-    serializer_class = serializers.ViewStepSerializer
-    queryset = models.Step.objects. \
-        select_related('project').prefetch_related('fields', 'step_files').only('project__name', 'name',
-                                                                                'placement',
-                                                                                'noda_front',
-                                                                                'responsible_persons_scheme')
+    serializer_class = serializers.CreateStepSchemaSerializer
+    queryset = models.StepSchema.objects.all()
 
     def perform_create(self, serializer):
         with transaction.atomic():
@@ -34,74 +30,85 @@ class Steps(ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
-            return serializers.CreateStepSerializer
+            return serializers.CreateStepSchemaSerializer
         elif self.request.method == 'PUT':
-            return serializers.UpdateStepSerializer
-        return serializers.ViewStepSerializer
+            return serializers.UpdateStepSchemaSerializer
+        return serializers.CreateStepSchemaSerializer
 
-    @extend_schema(examples=[OpenApiExample(
-        "create example",
-        value={
-            "templates_schema": 14,
-            "name": "room step",
-            "project": 1,
-            "placement": {
-                "x": "x",
-                "y": "y",
-                "w": "with",
-                "h": "height"
-            },
-            "noda_front": 'some front id'
-        }
-    )])
+    @extend_schema(
+        examples=[OpenApiExample(
+            "Create example",
+            value={
+                "id_template_main_project": 0,
+                "new_name": 'string',
+                "id_template": 0,
+                "noda_front": 'string',
+                "placement": {
+                    "x": "x",
+                    "y": "y",
+                },
+            }
+        )]
+    )
     def create(self, request, *args, **kwargs):
-        return super(Steps, self).create(request, *args, **kwargs)
+        data = request.data
+        error = check_errors.check_error(
+            tag_error={'id_template_main_project': int,
+                       'new_name': str,
+                       'id_template': int,
+                       'noda_front': str,
+                       'placement': dict},
+            check_data=data)
+        if error:
+            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            copy_schema = models.StepTemplates.objects.get(pk=data['id_template']).schema
+        except models.Step.DoesNotExist:
+            return Response({"error": 'There is no such scheme'}, status=status.HTTP_400_BAD_REQUEST)
+        copy_schema.pk = None
+        copy_schema._state.adding = True
+        copy_schema.name = data['new_name']
+        copy_schema.original = False
+        copy_schema.noda_front = data['noda_front']
+        copy_schema.placement = data['placement']
+        copy_schema.template_project_id = data['id_template_main_project']
+        copy_schema.save()
+        return Response(serializers.CreateStepSchemaSerializer(instance=copy_schema).data, status=status.HTTP_200_OK)
 
     @extend_schema(examples=[OpenApiExample(
         "put example",
         value={
             "name": 'step name',
-            "fields": [
+            "step_fields_schema": [
                 {
-                    "id": "id field",
                     "type": "type_filed",
-                    "data": {
-                        "identify": "type_filed"
-                    }
+                    "label": "label",
+                    "data": "{}"
                 }
             ]
         }
     )])
     def update(self, request, *args, **kwargs):
-        if not request.data.get('fields', False):
-            return Response({'Error': 'There are no fields'}, status=status.HTTP_400_BAD_REQUEST)
-        if not request.data.get('name', False):
-            return Response({'Error': 'There are no name'}, status=status.HTTP_400_BAD_REQUEST)
-
-        for field in request.data.get('fields'):
-            try:
-                models.StepFields.objects.filter(pk=field.pop('id')).update(field=field)
-            except KeyError:
-                models.StepFields.objects.create(field=field, step_id=kwargs['pk'])
-            except AttributeError:
-                return Response({'Error': 'Error'}, status=status.HTTP_400_BAD_REQUEST)
-        models.Step.objects.filter(pk=kwargs['pk']).update(name=request.data.get('name', F('name')))
-
-        return Response(serializers.ViewStepSerializer(
-            instance=models.Step.objects.select_related('project').prefetch_related('fields').only(
-                'project__name', 'name', 'placement', 'noda_front').get(pk=kwargs['pk'])).data)
-
-    @extend_schema(examples=[OpenApiExample(
-        "get example",
-        value={
-            'id_step': 'name step'
-        }
-    )])
-    @action(methods=['get'], detail=False)
-    def user_steps(self, request):
-        user = request.user
-        steps = models.Step.objects.filter(users_editor=user, active=True).only('name', 'id')
-        return Response({step.id: step.name for step in steps})
+        return super(SchemaSteps, self).update(request, *args, **kwargs)
+        # return Response(serializers.UpdateStepSchemaSerializer(
+        #     instance=models.StepSchema.objects.get(id=kwargs['pk'])).data)
+        # if not request.data.get('fields', False):
+        #     return Response({'Error': 'There are no fields'}, status=status.HTTP_400_BAD_REQUEST)
+        # if not request.data.get('name', False):
+        #     return Response({'Error': 'There are no name'}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # for field in request.data.get('fields'):
+        #     try:
+        #         models.StepFields.objects.filter(pk=field.pop('id')).update(field=field)
+        #     except KeyError:
+        #         models.StepFields.objects.create(field=field, step_id=kwargs['pk'])
+        #     except AttributeError:
+        #         return Response({'Error': 'Error'}, status=status.HTTP_400_BAD_REQUEST)
+        # models.Step.objects.filter(pk=kwargs['pk']).update(name=request.data.get('name', F('name')))
+        #
+        # return Response(serializers.ViewStepSerializer(
+        #     instance=models.Step.objects.select_related('project').prefetch_related('fields').only(
+        #         'project__name', 'name', 'placement', 'noda_front').get(pk=kwargs['pk'])).data)
 
     @extend_schema(examples=[OpenApiExample(
         "Put example",
@@ -109,7 +116,7 @@ class Steps(ModelViewSet):
             'id_project': 0,
         }
     )])
-    @action(methods=['put'], detail=True)
+    @action(methods=['put'], detail=True, url_path='set-start')
     def set_start(self, request, pk):
         errors = {}
         data = request.data
@@ -117,9 +124,9 @@ class Steps(ModelViewSet):
             errors['id_project'] = 'There is no field id_project or equals zero'
         if errors:
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
-        if models.MainKo.objects.get(pk=int(data['id_project'])).steps.filter(first_in_project=True).exists():
+        if models.StepSchema.objects.filter(template_project=data['id_project'], first_in_project=True).exists():
             return Response({'error': 'The initial stage has already been set'}, status=status.HTTP_400_BAD_REQUEST)
-        models.Step.objects.filter(pk=pk).update(first_in_project=True)
+        models.StepSchema.objects.filter(pk=pk).update(first_in_project=True)
         return Response({'status': True}, status=status.HTTP_200_OK)
 
     @extend_schema(examples=[OpenApiExample(
@@ -128,7 +135,7 @@ class Steps(ModelViewSet):
             'id_project': 0,
         }
     )])
-    @action(methods=['put'], detail=True)
+    @action(methods=['put'], detail=True, url_path='remove-start')
     def remove_start(self, request, pk):
         errors = {}
         data = request.data
@@ -136,17 +143,70 @@ class Steps(ModelViewSet):
             errors['id_project'] = 'There is no field id_project or equals zero'
         if errors:
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
-        models.Step.objects.filter(pk=pk).update(first_in_project=False)
+        models.StepSchema.objects.filter(pk=pk).update(first_in_project=False)
+        return Response({'status': True}, status=status.HTTP_200_OK)
+
+    @extend_schema(examples=[OpenApiExample(
+        "Put example",
+        value={
+            'id_project': 0,
+        }
+    )])
+    @action(methods=['put'], detail=True, url_path='set-last')
+    def set_last(self, request, pk):
+        errors = {}
+        data = request.data
+        if not data.get('id_project', False) or (not data['id_project'] and isinstance(data['id_project'], int)):
+            errors['id_project'] = 'There is no field id_project or equals zero'
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        if models.StepSchema.objects.filter(template_project=data['id_project'], last_in_project=True).exists():
+            return Response({'error': 'The initial stage has already been set'}, status=status.HTTP_400_BAD_REQUEST)
+        models.StepSchema.objects.filter(pk=pk).update(last_in_project=True)
+        return Response({'status': True}, status=status.HTTP_200_OK)
+
+    @extend_schema(examples=[OpenApiExample(
+        "Put example",
+        value={
+            'id_project': 0,
+        }
+    )])
+    @action(methods=['put'], detail=True, url_path='remove-last')
+    def remove_last(self, request, pk):
+        errors = {}
+        data = request.data
+        if not data.get('id_project', False) or (not data['id_project'] and isinstance(data['id_project'], int)):
+            errors['id_project'] = 'There is no field id_project or equals zero'
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        models.StepSchema.objects.filter(pk=pk).update(last_in_project=False)
         return Response({'status': True}, status=status.HTTP_200_OK)
 
 
-class DeleteStepFiled(generics.DestroyAPIView):
-    queryset = models.StepFields.objects.select_related('step').all()
-    serializer_class = serializers.StepFieldsSerializer
+class ListUserStep(generics.ListAPIView):
+    serializer_class = serializers.ViewStepSerializer
+
+    def get_queryset(self):
+        return models.Step.objects.filter(users_editor=self.request.user, active=True).only('name', 'id')
+
+    @extend_schema(examples=[OpenApiExample(
+        "get example",
+        value={
+            'id': 0,
+            'name': "sting"
+        }
+    )])
+    def get(self, request, *args, **kwargs):
+        return super(ListUserStep, self).get(request, *args, **kwargs)
 
 
-class MainKoViewSet(mixins.CreateModelMixin,
-                    mixins.RetrieveModelMixin,
+class RetrieveStep(generics.RetrieveAPIView):
+    serializer_class = serializers.RetrieveStepSerializer
+    queryset = models.Step.objects.select_related('project').prefetch_related('fields').only(
+        'project__name', 'name', 'placement', 'noda_front')
+
+
+class MainKoViewSet(mixins.RetrieveModelMixin,
                     mixins.DestroyModelMixin,
                     mixins.ListModelMixin,
                     GenericViewSet):
@@ -179,24 +239,17 @@ class MainKoViewSet(mixins.CreateModelMixin,
         serializer.save(user=self.request.user)
         # serializer.save(user_id=1)
 
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return serializers.CreateMainKoSerializer
-        return super(MainKoViewSet, self).get_serializer_class()
-
     @extend_schema(examples=[OpenApiExample(
         "get example",
         value={
-            "id": 1,
+            "id": 0,
             "name": 'test name',
             "steps": [
                 {
-                    "id": 1,
+                    "id": 0,
                     "placement": {
                         "x": "x",
                         "y": "y",
-                        "w": "with",
-                        "h": "height"
                     },
                     "name": "test12",
                     "project": "test",
@@ -212,9 +265,9 @@ class MainKoViewSet(mixins.CreateModelMixin,
             ],
             "links": [
                 {
-                    "id": 1,
-                    "start_id": 1,
-                    "end_id": 2,
+                    "id": 0,
+                    "start_id": 0,
+                    "end_id": 0,
                     "description": "string",
                     "color": "string"
                 }
@@ -247,7 +300,11 @@ class MainKoViewSet(mixins.CreateModelMixin,
             "date_create": "2023-08-04",
             "date_start": "2023-08-04",
             "date_end": "2023-09-21",
-            "last_change": "2023-09-21"
+            "last_change": "2023-09-21",
+            "active": "True/False",
+            "template_ko": 0,
+            "count_step": 0,
+            "finished_steps": 0
         })])
     def list(self, request, *args, **kwargs):
         return super(MainKoViewSet, self).list(request, *args, **kwargs)
@@ -267,22 +324,22 @@ class MainKoViewSet(mixins.CreateModelMixin,
                 data[step.name]['files'].append({'name': file.file_name, 'path': str(file.path_file)})
         return Response(data)
 
-    @action(detail=True, methods=['put'])
+    @extend_schema(examples=[OpenApiExample(
+        "get example",
+        value={
+            "new_name": "string",
+            "template_ko": 0,
+        })])
+    @action(detail=False, methods=['post'], url_path='start-project')
     def start_project(self, request, pk=None):
-        if self.get_queryset().get(pk=pk).active:
-            return Response({"error": 'The project is started'}, status=status.HTTP_400_BAD_REQUEST)
-        self.get_queryset().filter(pk=pk).update(active=True)
-        try:
-            step = models.MainKo.objects.get(pk=pk).steps.get(first_in_project=True)
-        except models.Step.DoesNotExist:
-            return Response({"error": 'The project does not have an initial stage'})
-        responsible_persons_scheme = step.responsible_persons_scheme
-        step.users_look.add(*responsible_persons_scheme['users_look'])
-        step.users_editor_id = responsible_persons_scheme['users_editor']
-        step.users_inspecting_id = responsible_persons_scheme['users_inspecting']
-        step.active = True
-        step.save()
-        return Response({"status": True}, status=status.HTTP_200_OK)
+        main_ko = serializers.CreateMainKoSerializer(data=request.data)
+        if main_ko.is_valid():
+            main_ko = main_ko.save(user=self.request.user)
+            schema = main_ko.template_ko.step_schema.get(first_in_project=True)
+            link = models.LinksStep.objects.get(start_id=schema.id, project_id=main_ko.id)
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(main_ko.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TemplateMainKo(generics.ListCreateAPIView):
@@ -307,7 +364,7 @@ class TemplateMainKo(generics.ListCreateAPIView):
             "id": 0,
             "creator": "string",
             "name": "string",
-            "date_create": 'date sting',
+            "date_create": "date sting",
             "archive": "True/False"
         })])
     def get(self, request, *args, **kwargs):
@@ -346,49 +403,33 @@ class TemplatesStep(ModelViewSet):
     """
     CRUD для схем этапов
     """
-    queryset = models.StepTemplates.objects.select_related('schema', 'creator').only('creator_id',
-                                                                                     'schema__step_fields_schema',
-                                                                                     'name', 'schema__name')
+    queryset = models.StepTemplates.objects.select_related('schema').only('schema__step_fields_schema',
+                                                                          'name', 'schema__name')
     serializer_class = serializers.CreateTemplatesStepSerializer
 
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user)
         # serializer.save(user_id=1)
 
-    @extend_schema(
-        examples=[OpenApiExample(
-            "Post example",
-            value={
-                "id_template_main_project": 0,
-                "new_name": 'string',
-                "id_template": 0,
-                "noda_front": 'string'
-            }
-        )]
-    )
-    @action(detail=False, methods=['post'])
-    def copy_template(self, request, pk=None):
-        data = request.data
-        error = check_errors.check_error(
-            tag_error={'id_template_main_project': int,
-                       'new_name': str,
-                       'id_template': int,
-                       'noda_front': str},
-            check_data=data)
-        if error:
-            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            copy_schema = models.StepTemplates.objects.get(pk=data['id_template']).schema
-        except models.Step.DoesNotExist:
-            return Response({"error": 'There is no such scheme'}, status=status.HTTP_400_BAD_REQUEST)
-        copy_schema.pk = None
-        copy_schema._state.adding = True
-        copy_schema.name = data['new_name']
-        copy_schema.original = False
-        copy_schema.noda_front = data['noda_front']
-        copy_schema.template_project = data['id_template_main_project']
-        copy_schema.save()
-        return Response({"status": True}, status=status.HTTP_200_OK)
+    def perform_destroy(self, instance):
+        instance.schema.delete()
+        instance.delete()
+
+    @extend_schema(examples=[OpenApiExample(
+        "Post example",
+        value={
+            "name": 'step name',
+            "step_fields_schema": [
+                {
+                    "type": "type_filed",
+                    "label": "label",
+                    "data": "{}"
+                }
+            ]
+        }
+    )])
+    def create(self, request, *args, **kwargs):
+        return super(TemplatesStep, self).create(request, *args, **kwargs)
 
 
 class ReplacementPlaceStep(generics.UpdateAPIView):
@@ -624,8 +665,8 @@ class SetGetWhoResponsibleStep(generics.UpdateAPIView, generics.RetrieveAPIView)
     """
     Назначение ответственного, наблюдателя и проверяющего для этапа
     """
-    queryset = models.Step.objects.only('responsible_persons_scheme')
-    serializer_class = serializers.SetWhoResponsibleSerializer
+    queryset = models.Step.objects.all()
+    serializer_class = serializers.ExampleSerializer
 
     @extend_schema(examples=[OpenApiExample(
         "put example",
@@ -666,7 +707,7 @@ class StepByStep(generics.GenericAPIView):
         with transaction.atomic():
             if not models.LinksStep.objects.filter(start_id=pk).exists():
                 last_step = models.Step.objects. \
-                    only('id', 'responsible_persons_scheme', 'users_editor__id', 'users_look__id',
+                    only('id', 'users_editor__id', 'users_look__id',
                          'users_inspecting__id'). \
                     get(pk=pk)
                 last_step.users_look.clear()
