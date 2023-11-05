@@ -135,7 +135,7 @@ class Step(models.Model):
     placement = models.JSONField(verbose_name='Расположение')
     project = models.ForeignKey(to='MainKo', on_delete=models.CASCADE, verbose_name='id проекта',
                                 related_name='steps', null=True, blank=True, )
-    schema_step = models.PositiveIntegerField(verbose_name='id схемы этапа')
+    schema_step = models.PositiveIntegerField(verbose_name='id схемы этапа', blank=True, null=True)
     noda_front = models.CharField(max_length=255, verbose_name='id ноды фронта')
     users_look = models.ManyToManyField(to=User, verbose_name='Те кто смотрят', blank=True, related_name='look')
     users_inspecting = models.ForeignKey(to=User, verbose_name='Тот кто проверяет', on_delete=models.SET_NULL,
