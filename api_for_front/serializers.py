@@ -128,7 +128,7 @@ class CreateTemplateMainKoSerializer(serializers.ModelSerializer):
         exclude = ['creator']
 
 
-class ViewTemplateMainKoSerializer(serializers.ModelSerializer):
+class ListTemplateMainKoSerializer(serializers.ModelSerializer):
     creator = serializers.CharField(source='creator.get_full_name')
 
     class Meta:

@@ -342,9 +342,11 @@ class MainKoViewSet(mixins.RetrieveModelMixin,
             return Response(main_ko.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class TemplateMainKo(generics.ListCreateAPIView):
+class TemplateMainKo(ModelViewSet):
     queryset = models.TemplateMainKo.objects.select_related('creator').only('name', 'creator_id',
-                                                                            'date_create', 'archive')
+                                                                            'date_create', 'archive',
+                                                                            'creator__first_name', 'creator__last_name',
+                                                                            'finished')
     serializer_class = serializers.CreateTemplateMainKoSerializer
 
     def perform_create(self, serializer):
@@ -355,8 +357,8 @@ class TemplateMainKo(generics.ListCreateAPIView):
         value={
             "name": "string",
         })])
-    def post(self, request, *args, **kwargs):
-        return super(TemplateMainKo, self).post(request, *args, **kwargs)
+    def create(self, request, *args, **kwargs):
+        return super(TemplateMainKo, self).create(request, *args, **kwargs)
 
     @extend_schema(examples=[OpenApiExample(
         "Post example",
@@ -365,11 +367,12 @@ class TemplateMainKo(generics.ListCreateAPIView):
             "creator": "string",
             "name": "string",
             "date_create": "date sting",
-            "archive": "True/False"
+            "archive": "True/False",
+            "finished": "True/False"
         })])
-    def get(self, request, *args, **kwargs):
-        self.serializer_class = serializers.ViewTemplateMainKoSerializer
-        return super(TemplateMainKo, self).get(request, *args, **kwargs)
+    def list(self, request, *args, **kwargs):
+        self.serializer_class = serializers.ListTemplateMainKoSerializer
+        return super(TemplateMainKo, self).list(request, *args, **kwargs)
 
 
 class LinkStepViewSet(ModelViewSet):

@@ -108,7 +108,7 @@ class StepSchema(models.Model):
     """
     name = models.CharField(max_length=255, verbose_name='Название схемы', db_index=True)
     template_project = models.ForeignKey(to='TemplateMainKo', blank=True, null=True, verbose_name='Шаблона проекта',
-                                         on_delete=models.CASCADE, related_name='step_schema')
+                                         on_delete=models.CASCADE, related_name='steps_schemas')
     placement = models.JSONField(verbose_name='Расположение', default=dict)
     step_fields_schema = models.JSONField(verbose_name='схема полей этапа')
     responsible_persons_scheme = models.JSONField(verbose_name='Схема ответственных лиц', blank=True, default=dict({
