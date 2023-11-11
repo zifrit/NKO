@@ -5,10 +5,20 @@ from . import models
 # Register your models here.
 
 
-@admin.register(models.MainProject)
+@admin.register(models.MainKo)
 class MainKO(admin.ModelAdmin):
     list_display = ['id', 'name', 'user', 'active']
     list_editable = ['active']
+    list_display_links = ['id', 'name']
+    search_fields = ['name']
+    save_on_top = True
+    list_per_page = 30
+
+
+@admin.register(models.TemplateMainKo)
+class MainKO(admin.ModelAdmin):
+    list_display = ['id', 'name', 'creator', 'archive']
+    list_editable = ['archive']
     list_display_links = ['id', 'name']
     search_fields = ['name']
     save_on_top = True
@@ -43,15 +53,30 @@ class StepFilesAdmin(admin.ModelAdmin):
 
 @admin.register(models.LinksStep)
 class LinksStepAdmin(admin.ModelAdmin):
-    list_display = ['id', 'description', 'start_id', 'end_id', 'color']
+    list_display = ['id', 'project_id', 'start_id', 'end_id', 'description']
     list_display_links = ['id', 'description']
+    save_on_top = True
+    list_per_page = 30
+
+
+class StepTemplatesInline(admin.TabularInline):
+    model = models.StepTemplates
+    extra = 1
+
+
+@admin.register(models.StepSchema)
+class StepSchemaAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'template_project', 'original']
+    list_display_links = ['id', 'name']
+    search_fields = ['name']
+    inlines = [StepTemplatesInline]
     save_on_top = True
     list_per_page = 30
 
 
 @admin.register(models.StepTemplates)
 class StepTemplatesAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'user']
+    list_display = ['id', 'name']
     list_display_links = ['id', 'name']
     search_fields = ['name']
     save_on_top = True

@@ -16,12 +16,13 @@ def create_fields_for_step(pk_step: int):
     from django.db import transaction
 
     with transaction.atomic():
-        step = models.Step.objects.select_related('templates_schema'). \
-            only('templates_schema__schema', 'name'). \
+        step = models.Step.objects.select_related('step_schema'). \
+            only('step_schema__schema', 'name'). \
             get(id=pk_step)
-        fields = step.templates_schema.schema
+        fields = step.step_schema.schema
         step_fields = list()
-        for filed in fields:
-            step_fields += [models.StepFields(field=filed, step=step)]
+        for field in fields:
+            print(field)
+            step_fields += [models.StepFields(field=field, step=step)]
         models.StepFields.objects.bulk_create(step_fields)
         step.save()

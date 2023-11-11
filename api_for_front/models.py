@@ -2,12 +2,14 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class MainProject(models.Model):
+class MainKo(models.Model):
     """
     Model MainProject information about the main project
     """
     name = models.CharField(max_length=255, verbose_name='Название проекта', db_index=True, unique=True)
-    user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name='Кто создал')
+    user = models.ForeignKey(to=User, on_delete=models.PROTECT, verbose_name='Кто создал')
+    template_ko = models.ForeignKey(to='TemplateMainKo', on_delete=models.PROTECT, verbose_name='Шаблон',
+                                    related_name='ko')
     date_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создание')
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)
@@ -15,22 +17,43 @@ class MainProject(models.Model):
     active = models.BooleanField(verbose_name='В процессе', default=False)
 
     def __str__(self):
-        return f'{self.user.username} {self.name}'
+        return self.name
 
     class Meta:
-        db_table = 'MainProject'
-        verbose_name = 'MainProject'
-        verbose_name_plural = 'MainProjects'
+        db_table = 'MainKo'
+        verbose_name = 'MainKo'
+        verbose_name_plural = 'MainKo'
+
+
+class TemplateMainKo(models.Model):
+    """
+    Model TemplateMainProject
+    """
+    name = models.CharField(max_length=255, verbose_name='Название шаблона проекта', db_index=True, unique=True)
+    creator = models.ForeignKey(to=User, on_delete=models.PROTECT, verbose_name='Кто создал')
+    date_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создание')
+    archive = models.BooleanField(verbose_name='Архив', default=False)
+    finished = models.BooleanField(verbose_name='Законченность', default=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'TemplateMainKo'
+        verbose_name = 'TemplateMainKo'
+        verbose_name_plural = 'TemplatesMainKo'
 
 
 class LinksStep(models.Model):
     """
-    Model LinksStep information about the relationship between tables
+    Model LinksStep information about the relationship between steps
     """
     start_id = models.PositiveIntegerField(verbose_name='начало связи')
     end_id = models.PositiveIntegerField(verbose_name='конец связи')
     description = models.CharField(max_length=255, verbose_name='описания', blank=True)
-    data = models.JSONField(verbose_name='id фронта')
+    project_id = models.PositiveIntegerField(verbose_name='id шаблона проекта', null=True)
+    in_template = models.BooleanField(verbose_name='Относится ли к шаблону', default=True)
+    data = models.JSONField(verbose_name='id фронта', default=dict)
     color = models.CharField(max_length=255, verbose_name='цвет', blank=True)
 
     class Meta:
@@ -62,21 +85,46 @@ class StepImages(models.Model):
     """
     file_name = models.CharField(verbose_name='Название файла', max_length=255)
     path_file = models.FileField(upload_to='images/%Y/%m.%d/', verbose_name='Файл')
-    link_main_project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='Объект привязки')
+    link_main_project = models.ForeignKey(to='TemplateMainKo', on_delete=models.CASCADE, verbose_name='Объект привязки')
 
 
 class StepTemplates(models.Model):
     """
-    Model template for create a step
+    Model Step templates
     """
-    name = models.CharField(max_length=255, verbose_name='Название схемы', db_index=True, unique=True)
-    user = models.ForeignKey(to=User, on_delete=models.SET_NULL, verbose_name='Кто создал', null=True)
-    schema = models.JSONField(verbose_name='схема этапа')
+    name = models.CharField(max_length=255, verbose_name='Название шаблона', db_index=True, unique=True)
+    schema = models.OneToOneField(to='StepSchema', on_delete=models.CASCADE, verbose_name='схема')
+    creator = models.ForeignKey(to=User, on_delete=models.PROTECT, verbose_name='Кто создал', null=True)
 
     class Meta:
         db_table = 'StepTemplates'
-        verbose_name = 'StepTemplate'
+        verbose_name = 'StepTemplates'
         verbose_name_plural = 'StepTemplates'
+
+
+class StepSchema(models.Model):
+    """
+    Model schema for create a step
+    """
+    name = models.CharField(max_length=255, verbose_name='Название схемы', db_index=True)
+    template_project = models.ForeignKey(to='TemplateMainKo', blank=True, null=True, verbose_name='Шаблона проекта',
+                                         on_delete=models.CASCADE, related_name='steps_schemas')
+    placement = models.JSONField(verbose_name='Расположение', default=dict)
+    step_fields_schema = models.JSONField(verbose_name='схема полей этапа')
+    responsible_persons_scheme = models.JSONField(verbose_name='Схема ответственных лиц', blank=True, default=dict({
+        "users_editor": '',
+        "users_look": [],
+        "users_inspecting": ''
+    }))
+    first_in_project = models.BooleanField(verbose_name='Начинающий в проекте', default=False)
+    last_in_project = models.BooleanField(verbose_name='Завершающий в проекте', default=False)
+    original = models.BooleanField(verbose_name='Оригинал', default=False)
+    noda_front = models.CharField(max_length=255, verbose_name='id ноды фронта', blank=True)
+
+    class Meta:
+        db_table = 'StepSchema'
+        verbose_name = 'StepSchema'
+        verbose_name_plural = 'StepSchemas'
 
 
 class Step(models.Model):
@@ -85,26 +133,19 @@ class Step(models.Model):
     """
     name = models.CharField(max_length=255, verbose_name='Название этапа', db_index=True)
     placement = models.JSONField(verbose_name='Расположение')
-    project = models.ForeignKey(to='MainProject', on_delete=models.CASCADE, verbose_name='id проекта',
-                                related_name='steps')
+    project = models.ForeignKey(to='MainKo', on_delete=models.CASCADE, verbose_name='id проекта',
+                                related_name='steps', null=True, blank=True, )
+    schema_step = models.PositiveIntegerField(verbose_name='id схемы этапа', blank=True, null=True)
     noda_front = models.CharField(max_length=255, verbose_name='id ноды фронта')
-    templates_schema = models.ForeignKey(to='StepTemplates', on_delete=models.SET_NULL, null=True,
-                                         verbose_name='Схема для создания', related_name='steps')
     users_look = models.ManyToManyField(to=User, verbose_name='Те кто смотрят', blank=True, related_name='look')
     users_inspecting = models.ForeignKey(to=User, verbose_name='Тот кто проверяет', on_delete=models.SET_NULL,
                                          null=True, blank=True, related_name='inspecting')
     users_editor = models.ForeignKey(to=User, verbose_name='Тот кто ответственен', on_delete=models.SET_NULL,
                                      null=True, blank=True, related_name='editor')
-    responsible_persons_scheme = models.JSONField(verbose_name='Схема ответственных лиц', blank=True, default=dict({
-
-        "users_editor": '',
-        "users_look": [],
-        "users_inspecting": ''
-    }
-    ))
     finished = models.BooleanField(verbose_name='Завершенность', default=False)
     active = models.BooleanField(verbose_name='В процессе', default=False)
-    beginner_in_project = models.BooleanField(verbose_name='Начинающий в проекте', default=False)
+    first_in_project = models.BooleanField(verbose_name='Начинающий в проекте', default=False)
+    last_in_project = models.BooleanField(verbose_name='Завершающий в проекте', default=False)
     date_create = models.DateTimeField(verbose_name='Дата создание', auto_now_add=True)
     date_start = models.DateTimeField(verbose_name='Дата начала работы', blank=True, null=True)
     date_end = models.DateTimeField(verbose_name='Дата конца работы', blank=True, null=True)
@@ -126,48 +167,3 @@ class StepFields(models.Model):
         db_table = 'StepFields'
         verbose_name = 'StepField'
         verbose_name_plural = 'StepFields'
-
-
-class FieldText(models.Model):
-    """
-    Text fild model step
-    """
-    identify = models.CharField(max_length=255, verbose_name='Идентификатор поля', blank=True)
-    name_field = models.CharField(max_length=255, verbose_name='Тип поля', default='Текст')
-    text = models.CharField(max_length=255, verbose_name='Текст', blank=True)
-    link_step = models.ForeignKey(to='Step', on_delete=models.CASCADE, verbose_name='связь с этапом',
-                                  related_name='step_text')
-
-
-class FieldTextarea(models.Model):
-    """
-    Textarea fild model step
-    """
-    identify = models.CharField(max_length=255, verbose_name='Идентификатор поля', blank=True)
-    name_field = models.CharField(max_length=255, verbose_name='Тип поля', default='Большой текс')
-    textarea = models.TextField(verbose_name='Большой текст', blank=True)
-    link_step = models.ForeignKey(to='Step', on_delete=models.CASCADE, verbose_name='связь с этапом',
-                                  related_name='step_textarea')
-
-
-class FieldDate(models.Model):
-    """
-    Date fild model step
-    """
-    identify = models.CharField(max_length=255, verbose_name='Идентификатор поля', blank=True)
-    name_field = models.CharField(max_length=255, verbose_name='Тип поля', default='Дата')
-    time = models.DateField(verbose_name='Дата', blank=True)
-    link_step = models.ForeignKey(to='Step', on_delete=models.CASCADE, verbose_name='связь с этапом',
-                                  related_name='step_date')
-
-
-class FieldStartFinishTime(models.Model):
-    """
-    Start-Finish-Time fild model step
-    """
-    identify = models.CharField(max_length=255, verbose_name='Идентификатор поля', blank=True)
-    name_field = models.CharField(max_length=255, verbose_name='Тип поля', default='Начало-Конец время')
-    start = models.DateTimeField(verbose_name='Начало', blank=True)
-    finish = models.DateTimeField(verbose_name='Конец', blank=True)
-    link_step = models.ForeignKey(to='Step', on_delete=models.CASCADE, verbose_name='связь с этапом',
-                                  related_name='step_f_s_time')

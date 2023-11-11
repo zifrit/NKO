@@ -4,14 +4,18 @@ from rest_framework import routers
 from . import views
 
 router = routers.SimpleRouter()
-router.register(r'project', views.MainProjectViewSet)
-router.register(r'steps', views.Steps)
+router.register(r'projects', views.MainKoViewSet)
+router.register(r'projects/templates', views.TemplateMainKo)
+router.register(r'schema-steps', views.SchemaSteps)
 router.register(r'links', views.LinkStepViewSet)
 router.register(r'templates', views.TemplatesStep)
 router.register(r'departments_v2', views.Departments)
 
 urlpatterns = [
-    path('step-filed/delete/<int:pk>/', views.DeleteStepFiled.as_view(), name='step_filed_delete'),
+    path('steps/user-steps/', views.ListUserStep.as_view(), name='user-steps'),
+    path('steps/<int:pk>/', views.RetrieveStep.as_view(), name='user-steps'),
+    # path('projects/templates/', views.TemplateMainKo.as_view(), name='list-create-projects-templates'),
+    # path('projects/templates/<int:pk>/', views.TemplateMainKo.as_view(), name='list-create-projects-templates'),
     path('departments/', views.GetDepartmentView.as_view(), name='get_departments'),
     path('departments/create/', views.CreateDepartmentView.as_view(), name='post_departments'),
     path('departments/<int:pk>/', views.DepartmentUserView.as_view(), name='users_in_departments'),
